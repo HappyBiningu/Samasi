@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Building } from "lucide-react";
+import logoPath from "@assets/logo.png";
 
 const Navbar = () => {
   const [location] = useLocation();
@@ -9,9 +9,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <Link href="/">
           <div className="flex items-center cursor-pointer">
-            <div className="h-10 w-10 bg-primary rounded-md flex items-center justify-center text-white font-bold">
-              <Building size={24} />
-            </div>
+            <img src={logoPath} alt="Samasi Logo" className="h-10 w-auto" />
             <h1 className="ml-3 text-xl font-semibold text-secondary">Invoice Generator</h1>
           </div>
         </Link>

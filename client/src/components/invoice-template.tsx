@@ -1,4 +1,5 @@
 import { formatCurrency, formatDate } from "@/lib/utils";
+import logoPath from "@assets/logo.png";
 
 interface InvoiceTemplateProps {
   invoice: any;
@@ -16,9 +17,7 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
         </div>
         <div>
           {/* Company logo */}
-          <div className="h-16 w-16 bg-primary rounded-md flex items-center justify-center text-white font-bold text-2xl">
-            CDS
-          </div>
+          <img src={logoPath} alt="Samasi Logo" className="h-20 w-auto" />
         </div>
       </div>
       
