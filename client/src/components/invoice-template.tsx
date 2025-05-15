@@ -106,7 +106,7 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
       </div>
       
       <div className="text-right text-sm text-neutral-500 mt-8">
-        Powered by Invoice Home
+        Powered by Samasi
       </div>
     </div>
   );

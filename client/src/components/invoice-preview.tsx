@@ -20,33 +20,33 @@ const InvoicePreview = ({ invoice, onClose, onSave }: InvoicePreviewProps) => {
 
   const handleDownload = async () => {
     setIsDownloading(true);
-    
+
     try {
       const element = document.getElementById('invoice-template');
       if (!element) {
         throw new Error("Invoice template element not found");
       }
-      
+
       const canvas = await html2canvas(element, {
         scale: 2,
         logging: false,
         useCORS: true,
         allowTaint: true,
       });
-      
+
       // Create PDF with correct dimensions for A4
       const pdf = new jsPDF({
         format: 'a4',
         unit: 'mm',
       });
-      
+
       // Calculate dimensions
       const imgWidth = 210; // A4 width in mm
       const imgHeight = canvas.height * imgWidth / canvas.width;
-      
+
       pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight);
       pdf.save(`Invoice-${invoice.invoiceNumber}.pdf`);
-      
+
       toast({
         title: "PDF Downloaded",
         description: `Invoice #${invoice.invoiceNumber} has been downloaded`,
@@ -80,11 +80,11 @@ const InvoicePreview = ({ invoice, onClose, onSave }: InvoicePreviewProps) => {
             <X className="h-4 w-4" />
           </Button>
         </DialogHeader>
-        
+
         <div className="font-sans">
           <InvoiceTemplate invoice={invoice} />
         </div>
-        
+
         <DialogFooter>
           <Button 
             variant="outline"
