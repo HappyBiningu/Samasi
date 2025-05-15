@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { LineItem as LineItemType, Invoice } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Trash2, FileOutput, Receipt, FileEdit, FileText } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, FileOutput, Receipt, FileEdit, FileText, Eye } from "lucide-react";
 import { formatCurrency, calculateInvoiceTotals } from "@/lib/utils";
 import InvoicePreview from "@/components/invoice-preview";
 import LineItem from "@/components/line-item";
@@ -347,15 +347,15 @@ const InvoiceForm = () => {
             </div>
             
             {/* Totals */}
-            <div className="mt-6 bg-neutral-100 p-4 rounded-lg">
+            <div className="mt-6 bg-gradient-to-r from-primary/5 to-secondary/5 p-6 rounded-lg border border-primary/10">
               <div className="grid grid-cols-2 gap-4">
-                <div className="text-right font-medium">Subtotal:</div>
+                <div className="text-right font-medium text-secondary">Subtotal:</div>
                 <div className="text-right font-medium">{formatCurrency(formData.subtotal)}</div>
                 
-                <div className="text-right font-medium">VAT (15%):</div>
+                <div className="text-right font-medium text-secondary">VAT (15%):</div>
                 <div className="text-right font-medium">{formatCurrency(formData.vat)}</div>
                 
-                <div className="text-right text-lg font-semibold">TOTAL:</div>
+                <div className="text-right text-lg font-semibold text-primary">TOTAL:</div>
                 <div className="text-right text-lg font-semibold">{formatCurrency(formData.total)}</div>
               </div>
             </div>
@@ -364,15 +364,19 @@ const InvoiceForm = () => {
             <div className="flex justify-end space-x-4 mt-6">
               <Button
                 type="button"
-                variant="secondary"
+                variant="outline"
                 onClick={handlePreview}
+                className="border-secondary text-secondary hover:bg-secondary/10"
               >
+                <Eye className="mr-2 h-4 w-4" />
                 Preview Invoice
               </Button>
               <Button 
                 type="submit"
                 disabled={mutation.isPending}
+                className="bg-primary hover:bg-primary/90"
               >
+                <FileOutput className="mr-2 h-4 w-4" />
                 {mutation.isPending ? "Saving..." : "Save Invoice"}
               </Button>
             </div>

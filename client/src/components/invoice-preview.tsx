@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { X, Save, FileDown } from "lucide-react";
+import { X, Save, FileOutput, Receipt } from "lucide-react";
 import InvoiceTemplate from "@/components/invoice-template";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { useToast } from "@/hooks/use-toast";
+import logoPath from "@assets/logo.png";
 
 interface InvoicePreviewProps {
   invoice: any;
@@ -64,13 +65,16 @@ const InvoicePreview = ({ invoice, onClose, onSave }: InvoicePreviewProps) => {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Invoice Preview</DialogTitle>
+      <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto border-primary/20">
+        <DialogHeader className="bg-gradient-to-r from-primary/5 to-accent/5 px-6 py-4 border-b border-primary/10 rounded-t-lg">
+          <DialogTitle className="text-xl font-semibold flex items-center">
+            <Receipt className="mr-2 h-5 w-5 text-primary" />
+            Invoice Preview
+          </DialogTitle>
           <Button 
             variant="ghost" 
             size="icon" 
-            className="absolute right-4 top-4"
+            className="absolute right-4 top-4 hover:bg-primary/10"
             onClick={onClose}
           >
             <X className="h-4 w-4" />
@@ -83,17 +87,17 @@ const InvoicePreview = ({ invoice, onClose, onSave }: InvoicePreviewProps) => {
         
         <DialogFooter>
           <Button 
-            variant="secondary"
+            variant="outline"
             onClick={handleDownload}
             disabled={isDownloading}
-            className="flex items-center"
+            className="flex items-center border-primary text-primary hover:bg-primary/10"
           >
-            <FileDown className="mr-2 h-4 w-4" /> 
+            <FileOutput className="mr-2 h-4 w-4" /> 
             {isDownloading ? "Downloading..." : "Download PDF"}
           </Button>
           <Button 
             onClick={onSave}
-            className="flex items-center"
+            className="flex items-center bg-secondary hover:bg-secondary/90"
           >
             <Save className="mr-2 h-4 w-4" /> Save Invoice
           </Button>
