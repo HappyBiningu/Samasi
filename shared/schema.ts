@@ -37,6 +37,9 @@ export const invoices = pgTable("invoices", {
   vat: integer("vat").notNull(),
   total: integer("total").notNull(),
   status: text("status").notNull().default("unpaid"),
+  lastReminderSent: timestamp("last_reminder_sent"),
+  reminderCount: integer("reminder_count").default(0),
+  dueDate: text("due_date"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

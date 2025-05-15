@@ -198,7 +198,7 @@ const InvoicesList = () => {
         </div>
         
         <div style="text-align: right; margin-top: 20px; font-size: 12px; color: #777;">
-          Powered by Invoice Home
+          Powered by Samasi
         </div>
       `;
       
