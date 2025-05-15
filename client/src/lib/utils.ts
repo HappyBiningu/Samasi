@@ -28,9 +28,9 @@ export function calculateInvoiceTotals(lineItems: LineItem[]) {
   const total = subtotal + vat;
   
   return {
-    subtotal,
-    vat,
-    total
+    subtotal: Math.round(subtotal),
+    vat: Math.round(vat),
+    total: Math.round(total)
   };
 }
 
