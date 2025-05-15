@@ -99,12 +99,146 @@ const InvoicesList = () => {
     }
   };
 
-  const downloadPdf = (invoice: Invoice) => {
-    // This would be implemented with the actual PDF creation logic
-    toast({
-      title: "PDF Downloaded",
-      description: `Invoice #${invoice.invoiceNumber} has been downloaded`,
-    });
+  const downloadPdf = async (invoice: Invoice) => {
+    try {
+      // Get the invoice data first
+      const response = await apiRequest("GET", `/api/invoices/${invoice.id}`);
+      
+      // Create a temporary component for rendering
+      const element = document.createElement('div');
+      element.style.position = 'absolute';
+      element.style.left = '-9999px';
+      document.body.appendChild(element);
+      
+      // Create a new instance of jsPDF
+      const { jsPDF } = await import('jspdf');
+      const { default: html2canvas } = await import('html2canvas');
+      
+      // Render the invoice template to the hidden div
+      const tempDiv = document.createElement('div');
+      tempDiv.id = 'invoice-template';
+      tempDiv.className = 'border border-neutral-300 p-8 bg-white font-sans';
+      
+      // Build simplified invoice HTML
+      tempDiv.innerHTML = `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+          <div>
+            <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">Invoice</h2>
+            <p>360 Rivonia Boulevard, Edenburg, 2192</p>
+            <p>Registration Number: 2017/374222/21</p>
+            <p>VAT No: 4650278411</p>
+          </div>
+          <div>
+            <div style="width: 80px; text-align: right;">
+              <img src="${window.location.origin}/assets/logo.png" alt="Samasi Logo" style="max-width: 100%;" />
+            </div>
+          </div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+          <div>
+            <h3 style="font-weight: bold; margin-bottom: 5px;">BILL TO</h3>
+            <p>${invoice.clientName}</p>
+            <p>Registration Number: ${invoice.clientRegNumber}</p>
+            <p>VAT No: ${invoice.clientVatNumber}</p>
+          </div>
+          <div style="text-align: right;">
+            <p>
+              <span style="display: inline-block; width: 120px; font-weight: bold;">INVOICE #</span>
+              <span>${invoice.invoiceNumber}</span>
+            </p>
+            <p>
+              <span style="display: inline-block; width: 120px; font-weight: bold;">INVOICE DATE</span>
+              <span>${invoice.invoiceDate}</span>
+            </p>
+          </div>
+        </div>
+        
+        <table style="width: 100%; margin-bottom: 20px; border-collapse: collapse;">
+          <thead>
+            <tr style="border-bottom: 2px solid #333;">
+              <th style="text-align: left; padding: 8px; font-weight: bold;">DESCRIPTION</th>
+              <th style="text-align: right; padding: 8px; font-weight: bold;">AMOUNT</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${invoice.lineItems.map((item: any) => `
+              <tr>
+                <td style="text-align: left; padding: 8px;">${item.description}</td>
+                <td style="text-align: right; padding: 8px;">${item.amount.toFixed(2)}</td>
+              </tr>
+            `).join('')}
+            <tr style="border-top: 1px solid #ddd;">
+              <td style="text-align: right; padding: 8px; font-weight: bold;">Subtotal</td>
+              <td style="text-align: right; padding: 8px; font-weight: bold;">${invoice.subtotal.toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td style="text-align: right; padding: 8px; font-weight: bold;">VAT (15.0%)</td>
+              <td style="text-align: right; padding: 8px; font-weight: bold;">${invoice.vat.toFixed(2)}</td>
+            </tr>
+            <tr style="border-top: 2px solid #333;">
+              <td style="text-align: right; padding: 8px; font-weight: bold; font-size: 18px;">TOTAL</td>
+              <td style="text-align: right; padding: 8px; font-weight: bold; font-size: 18px;">R${invoice.total.toFixed(2)}</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div style="text-align: center; margin-bottom: 15px;">
+          <h3 style="font-weight: bold; margin-bottom: 5px;">Terms & Conditions</h3>
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 15px;">
+          <p style="font-weight: bold;">Thank you</p>
+        </div>
+        
+        <div style="text-align: center;">
+          <p>Bank: First National Bank(FNB)</p>
+          <p>Account Number: 62417570993</p>
+          <p>Branch Code: 250655</p>
+        </div>
+        
+        <div style="text-align: right; margin-top: 20px; font-size: 12px; color: #777;">
+          Powered by Invoice Home
+        </div>
+      `;
+      
+      element.appendChild(tempDiv);
+      
+      // Capture the rendered template as an image
+      const canvas = await html2canvas(tempDiv, {
+        scale: 2,
+        logging: false,
+        useCORS: true
+      });
+      
+      // Create PDF with correct dimensions for A4
+      const pdf = new jsPDF({
+        format: 'a4',
+        unit: 'mm'
+      });
+      
+      // Calculate dimensions
+      const imgWidth = 210; // A4 width in mm
+      const imgHeight = canvas.height * imgWidth / canvas.width;
+      
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.save(`Invoice-${invoice.invoiceNumber}.pdf`);
+      
+      // Clean up the temporary element
+      document.body.removeChild(element);
+      
+      toast({
+        title: "PDF Downloaded",
+        description: `Invoice #${invoice.invoiceNumber} has been downloaded`,
+      });
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast({
+        title: "Download Failed",
+        description: "There was an error generating the PDF",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
