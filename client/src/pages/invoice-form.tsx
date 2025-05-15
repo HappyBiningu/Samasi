@@ -8,10 +8,11 @@ import { Label } from "@/components/ui/label";
 import { LineItem as LineItemType, Invoice } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, FileOutput, Receipt, FileEdit, FileText } from "lucide-react";
 import { formatCurrency, calculateInvoiceTotals } from "@/lib/utils";
 import InvoicePreview from "@/components/invoice-preview";
 import LineItem from "@/components/line-item";
+import logoPath from "@assets/logo.png";
 
 interface InvoiceFormData {
   invoiceNumber: string;
@@ -187,17 +188,33 @@ const InvoiceForm = () => {
   return (
     <>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">{isEditing ? "Edit Invoice" : "Create New Invoice"}</h2>
+        <div className="flex items-center">
+          <img src={logoPath} alt="Samasi Logo" className="h-10 w-auto mr-3" />
+          <h2 className="text-2xl font-semibold flex items-center">
+            {isEditing ? (
+              <FileEdit className="mr-2 h-5 w-5 text-secondary" />
+            ) : (
+              <FileOutput className="mr-2 h-5 w-5 text-primary" />
+            )}
+            {isEditing ? "Edit Invoice" : "Create New Invoice"}
+          </h2>
+        </div>
         <Button
           variant="outline"
           onClick={() => navigate("/")}
-          className="text-neutral-500 hover:text-primary flex items-center"
+          className="text-neutral-500 hover:text-primary flex items-center border-primary/20 hover:bg-primary/5"
         >
           <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
       </div>
       
-      <Card>
+      <Card className="border-primary/20 overflow-hidden">
+        <div className="bg-gradient-to-r from-primary/5 to-accent/5 px-6 py-4 border-b border-primary/10">
+          <h3 className="font-medium flex items-center">
+            <Receipt className="mr-2 h-5 w-5 text-primary" />
+            Invoice Details
+          </h3>
+        </div>
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -302,7 +319,10 @@ const InvoiceForm = () => {
             
             {/* Line Items */}
             <div className="mt-6">
-              <h3 className="text-lg font-medium mb-4 pb-2 border-b border-neutral-200">Items</h3>
+              <div className="flex items-center mb-4 pb-2 border-b border-primary/20">
+                <FileText className="mr-2 h-5 w-5 text-secondary" />
+                <h3 className="text-lg font-medium">Invoice Items</h3>
+              </div>
               <div className="space-y-4">
                 {formData.lineItems.map((item, index) => (
                   <LineItem
@@ -320,7 +340,7 @@ const InvoiceForm = () => {
                 type="button"
                 variant="ghost"
                 onClick={addLineItem}
-                className="mt-4 text-primary hover:text-primary/90 font-medium py-2 px-0 h-auto"
+                className="mt-4 text-primary hover:bg-primary/10 font-medium py-2 px-4 h-auto rounded-md"
               >
                 <Plus className="mr-2 h-4 w-4" /> Add Line Item
               </Button>

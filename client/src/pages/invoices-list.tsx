@@ -20,13 +20,16 @@ import {
 import {
   Eye,
   FileEdit,
-  File,
+  FileOutput,
   Trash2,
   Search,
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
+  Receipt,
+  List,
 } from "lucide-react";
+import logoPath from "@assets/logo.png";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -120,17 +123,29 @@ const InvoicesList = () => {
   return (
     <>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">My Invoices</h2>
+        <div className="flex items-center">
+          <img src={logoPath} alt="Samasi Logo" className="h-10 w-auto mr-3" />
+          <h2 className="text-2xl font-semibold flex items-center">
+            <List className="mr-2 h-5 w-5 text-primary" />
+            My Invoices
+          </h2>
+        </div>
         <Button
           variant="outline"
           onClick={() => navigate("/")}
-          className="text-neutral-500 hover:text-primary flex items-center"
+          className="text-neutral-500 hover:text-primary flex items-center border-primary/20 hover:bg-primary/5"
         >
           <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
       </div>
       
-      <Card>
+      <Card className="border-primary/20 overflow-hidden">
+        <div className="bg-gradient-to-r from-primary/5 to-accent/5 px-6 py-4 border-b border-primary/10">
+          <h3 className="font-medium flex items-center">
+            <Receipt className="mr-2 h-5 w-5 text-primary" />
+            Invoice Management
+          </h3>
+        </div>
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div className="relative w-full sm:w-64">
@@ -189,6 +204,7 @@ const InvoicesList = () => {
                           size="icon"
                           onClick={() => navigate(`/edit-invoice/${invoice.id}`)}
                           title="View"
+                          className="hover:bg-primary/10"
                         >
                           <Eye className="h-4 w-4 text-primary" />
                         </Button>
@@ -197,6 +213,7 @@ const InvoicesList = () => {
                           size="icon"
                           onClick={() => navigate(`/edit-invoice/${invoice.id}`)}
                           title="Edit"
+                          className="hover:bg-secondary/10"
                         >
                           <FileEdit className="h-4 w-4 text-secondary" />
                         </Button>
@@ -205,14 +222,16 @@ const InvoicesList = () => {
                           size="icon"
                           onClick={() => downloadPdf(invoice)}
                           title="Download PDF"
+                          className="hover:bg-primary/10"
                         >
-                          <File className="h-4 w-4 text-primary" />
+                          <FileOutput className="h-4 w-4 text-primary" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDelete(invoice.id)}
                           title="Delete"
+                          className="hover:bg-red-100"
                         >
                           <Trash2 className="h-4 w-4 text-neutral-500 hover:text-red-600" />
                         </Button>
@@ -224,8 +243,10 @@ const InvoicesList = () => {
             </div>
           ) : (
             <div className="text-center py-10">
-              <File className="mx-auto h-12 w-12 text-neutral-300" />
-              <h3 className="mt-2 text-sm font-semibold text-secondary">No invoices found</h3>
+              <div className="mx-auto h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
+                <Receipt className="h-10 w-10 text-primary" />
+              </div>
+              <h3 className="mt-4 text-sm font-semibold text-secondary">No invoices found</h3>
               <p className="mt-1 text-sm text-neutral-500">
                 {searchTerm || statusFilter !== "all"
                   ? "Try adjusting your search or filter"
@@ -233,7 +254,11 @@ const InvoicesList = () => {
               </p>
               {!searchTerm && statusFilter === "all" && (
                 <div className="mt-6">
-                  <Button onClick={() => navigate("/new-invoice")}>
+                  <Button 
+                    onClick={() => navigate("/new-invoice")}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    <FileOutput className="mr-2 h-4 w-4" />
                     Create Invoice
                   </Button>
                 </div>
