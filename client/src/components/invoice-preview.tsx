@@ -66,14 +66,11 @@ const InvoicePreview = ({ invoice, onClose, onSave }: InvoicePreviewProps) => {
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto border-primary/20">
-        <DialogHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 px-6 py-4 border-b border-primary/10 rounded-t-lg">
-          <div className="flex items-center mb-4">
-            <img src="/assets/logo.png" alt="Samasi Logo" className="h-10 w-auto mr-3" />
-            <DialogTitle className="text-2xl font-semibold flex items-center">
-              <Receipt className="mr-2 h-5 w-5 text-primary" />
-              Invoice Preview
-            </DialogTitle>
-          </div>
+        <DialogHeader className="bg-gradient-to-r from-primary/5 to-accent/5 px-6 py-4 border-b border-primary/10 rounded-t-lg">
+          <DialogTitle className="text-xl font-semibold flex items-center">
+            <Receipt className="mr-2 h-5 w-5 text-primary" />
+            Invoice Preview
+          </DialogTitle>
           <Button 
             variant="ghost" 
             size="icon" 
