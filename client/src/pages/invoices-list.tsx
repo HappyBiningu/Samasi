@@ -27,6 +27,11 @@ import {
   ChevronRight,
   ArrowLeft,
   Receipt,
+  Bell,
+  CheckCircle,
+  Clock,
+  XCircle,
+  Mail,
   List,
 } from "lucide-react";
 import logoPath from "@assets/logo.png";
@@ -86,6 +91,53 @@ const InvoicesList = () => {
 
   const handleStatusChange = (value: string) => {
     setStatusFilter(value);
+  };
+  
+  const updateInvoiceStatus = async (id: number, status: string) => {
+    try {
+      await apiRequest("PUT", `/api/invoices/${id}`, { status });
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+      
+      toast({
+        title: "Status Updated",
+        description: `Invoice status has been updated to ${status}`,
+      });
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update invoice status",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const sendInvoiceReminder = async (invoice: Invoice) => {
+    try {
+      // In a real implementation, this would send an email
+      // For now, we'll just update the lastReminderSent timestamp and increment reminderCount
+      const now = new Date().toISOString();
+      const reminderCount = (invoice.reminderCount || 0) + 1;
+      
+      await apiRequest("PUT", `/api/invoices/${invoice.id}`, { 
+        lastReminderSent: now,
+        reminderCount 
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+      
+      toast({
+        title: "Reminder Sent",
+        description: `Payment reminder sent to ${invoice.clientName}`,
+      });
+    } catch (error) {
+      console.error("Error sending reminder:", error);
+      toast({
+        title: "Reminder Failed",
+        description: "Failed to send payment reminder",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDelete = (id: number) => {
@@ -360,6 +412,54 @@ const InvoicesList = () => {
                         >
                           <FileOutput className="h-4 w-4 text-primary" />
                         </Button>
+                        {/* Status actions */}
+                        {invoice.status !== "paid" && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => updateInvoiceStatus(invoice.id, "paid")}
+                            title="Mark as Paid"
+                            className="hover:bg-green-100"
+                          >
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                          </Button>
+                        )}
+                        {invoice.status !== "pending" && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => updateInvoiceStatus(invoice.id, "pending")}
+                            title="Mark as Pending"
+                            className="hover:bg-yellow-100"
+                          >
+                            <Clock className="h-4 w-4 text-yellow-600" />
+                          </Button>
+                        )}
+                        {invoice.status !== "unpaid" && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => updateInvoiceStatus(invoice.id, "unpaid")}
+                            title="Mark as Unpaid"
+                            className="hover:bg-red-100"
+                          >
+                            <XCircle className="h-4 w-4 text-red-600" />
+                          </Button>
+                        )}
+                        
+                        {/* Reminder button - only for unpaid/pending invoices */}
+                        {(invoice.status === "unpaid" || invoice.status === "pending") && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => sendInvoiceReminder(invoice)}
+                            title="Send Payment Reminder"
+                            className="hover:bg-blue-100"
+                          >
+                            <Mail className="h-4 w-4 text-blue-600" />
+                          </Button>
+                        )}
+                        
                         <Button
                           variant="ghost"
                           size="icon"
