@@ -25,6 +25,9 @@ interface InvoiceFormData {
   vat: number;
   total: number;
   status: string;
+  dueDate?: string;
+  reminderCount?: number;
+  lastReminderSent?: string;
 }
 
 const InvoiceForm = () => {
@@ -49,6 +52,8 @@ const InvoiceForm = () => {
     vat: 0,
     total: 0,
     status: "unpaid",
+    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], // Default: 30 days from now
+    reminderCount: 0,
   });
 
   // Fetch invoice data if editing
@@ -71,6 +76,9 @@ const InvoiceForm = () => {
         vat: invoiceData.vat,
         total: invoiceData.total,
         status: invoiceData.status,
+        dueDate: invoiceData.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+        reminderCount: invoiceData.reminderCount || 0,
+        lastReminderSent: invoiceData.lastReminderSent || undefined,
       });
     }
   }, [invoiceData]);
@@ -301,6 +309,18 @@ const InvoiceForm = () => {
                       id="invoiceDate"
                       name="invoiceDate"
                       value={formData.invoiceDate}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="dueDate" className="text-sm font-medium text-neutral-500 mb-1">Due Date</Label>
+                    <Input
+                      type="date"
+                      id="dueDate"
+                      name="dueDate"
+                      value={formData.dueDate}
                       onChange={handleInputChange}
                       required
                     />
