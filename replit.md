@@ -40,8 +40,6 @@ A full-stack invoice management application built with React, Express, and TypeS
 - Fixed DOM nesting warnings in navigation components
 - Updated database schema to support bank details storage
 - Migrated from in-memory storage to PostgreSQL database with Drizzle ORM
-- Created deployment configuration and scripts for Render hosting platform
-- Fixed TypeScript compilation errors for production builds
 - Added editable bank details functionality to invoice system
 - Fixed DOM nesting warnings in navigation components
 - Updated database schema to support bank details storage
@@ -52,8 +50,3 @@ A full-stack invoice management application built with React, Express, and TypeS
 - Express serves API routes under /api prefix
 - PostgreSQL database with persistent storage for production use
 - Database schema managed through Drizzle migrations with `npm run db:push`
-
-## Deployment
-- Ready for deployment on Render with provided configuration
-- See RENDER_DEPLOYMENT.md for detailed deployment instructions
-- Custom build script available at scripts/build-for-render.sh for deployment fixes
