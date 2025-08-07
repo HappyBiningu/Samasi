@@ -36,6 +36,9 @@ A full-stack invoice management application built with React, Express, and TypeS
 - Migrated from Replit Agent to Replit environment
 - Fixed build configuration and dependencies
 - Ensured proper security practices and client/server separation
+- Added editable bank details functionality to invoice system
+- Fixed DOM nesting warnings in navigation components
+- Updated database schema to support bank details storage
 
 ## Development Notes
 - Uses port 5000 for both frontend and backend serving

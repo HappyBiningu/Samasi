@@ -16,17 +16,19 @@ const Navbar = () => {
         <nav>
           <ul className="flex space-x-6">
             <li>
-              <Link href="/new-invoice">
-                <a className={`${location === "/new-invoice" ? "text-primary border-b-2 border-primary" : "text-neutral-500 hover:text-primary"} font-medium pb-1`}>
-                  New Invoice
-                </a>
+              <Link 
+                href="/new-invoice"
+                className={`${location === "/new-invoice" ? "text-primary border-b-2 border-primary" : "text-neutral-500 hover:text-primary"} font-medium pb-1`}
+              >
+                New Invoice
               </Link>
             </li>
             <li>
-              <Link href="/invoices">
-                <a className={`${location === "/invoices" ? "text-primary border-b-2 border-primary" : "text-neutral-500 hover:text-primary"} font-medium pb-1`}>
-                  My Invoices
-                </a>
+              <Link 
+                href="/invoices"
+                className={`${location === "/invoices" ? "text-primary border-b-2 border-primary" : "text-neutral-500 hover:text-primary"} font-medium pb-1`}
+              >
+                My Invoices
               </Link>
             </li>
           </ul>

@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser, type Invoice, type InsertInvoice } from "@shared/schema";
+import { users, type User, type InsertUser, type Invoice, type InsertInvoice, type BankDetails } from "@shared/schema";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -58,6 +58,7 @@ export class MemStorage implements IStorage {
       clientRegNumber: insertInvoice.clientRegNumber,
       clientVatNumber: insertInvoice.clientVatNumber,
       lineItems: insertInvoice.lineItems as any, // Type assertion for in-memory storage
+      bankDetails: insertInvoice.bankDetails ? (insertInvoice.bankDetails as any) : null,
       subtotal: insertInvoice.subtotal,
       vat: insertInvoice.vat,
       total: insertInvoice.total,
@@ -86,7 +87,8 @@ export class MemStorage implements IStorage {
     const updatedInvoice: Invoice = {
       ...existingInvoice,
       ...invoiceUpdate,
-      lineItems: invoiceUpdate.lineItems ? (invoiceUpdate.lineItems as any) : existingInvoice.lineItems
+      lineItems: invoiceUpdate.lineItems ? (invoiceUpdate.lineItems as any) : existingInvoice.lineItems,
+      bankDetails: invoiceUpdate.bankDetails !== undefined ? (invoiceUpdate.bankDetails as any) : existingInvoice.bankDetails
     };
     
     this.invoices.set(id, updatedInvoice);

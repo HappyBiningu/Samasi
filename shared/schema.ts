@@ -24,6 +24,18 @@ export const lineItemSchema = z.object({
 
 export type LineItem = z.infer<typeof lineItemSchema>;
 
+// Bank details schema
+export const bankDetailsSchema = z.object({
+  bankName: z.string().min(1, "Bank name is required"),
+  accountName: z.string().min(1, "Account name is required"),
+  accountNumber: z.string().min(1, "Account number is required"),
+  sortCode: z.string().optional(),
+  iban: z.string().optional(),
+  swiftCode: z.string().optional(),
+});
+
+export type BankDetails = z.infer<typeof bankDetailsSchema>;
+
 // Invoice schema
 export const invoices = pgTable("invoices", {
   id: serial("id").primaryKey(),
@@ -33,6 +45,7 @@ export const invoices = pgTable("invoices", {
   clientRegNumber: text("client_reg_number").notNull(),
   clientVatNumber: text("client_vat_number").notNull(),
   lineItems: jsonb("line_items").notNull().$type<LineItem[]>(),
+  bankDetails: jsonb("bank_details").$type<BankDetails>(),
   subtotal: integer("subtotal").notNull(),
   vat: integer("vat").notNull(),
   total: integer("total").notNull(),

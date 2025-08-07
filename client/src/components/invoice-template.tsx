@@ -95,11 +95,17 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
         <p className="font-bold">Thank you</p>
       </div>
       
-      <div className="text-center mb-6">
-        <p>Bank: First National Bank(FNB)</p>
-        <p>Account Number: 62417570993</p>
-        <p>Branch Code: 250655</p>
-      </div>
+      {invoice.bankDetails && (
+        <div className="text-center mb-6">
+          <h3 className="font-bold mb-2">Banking Details</h3>
+          {invoice.bankDetails.bankName && <p>Bank: {invoice.bankDetails.bankName}</p>}
+          {invoice.bankDetails.accountName && <p>Account Name: {invoice.bankDetails.accountName}</p>}
+          {invoice.bankDetails.accountNumber && <p>Account Number: {invoice.bankDetails.accountNumber}</p>}
+          {invoice.bankDetails.sortCode && <p>Sort Code: {invoice.bankDetails.sortCode}</p>}
+          {invoice.bankDetails.iban && <p>IBAN: {invoice.bankDetails.iban}</p>}
+          {invoice.bankDetails.swiftCode && <p>SWIFT Code: {invoice.bankDetails.swiftCode}</p>}
+        </div>
+      )}
 
       <div className="text-center mt-8 mb-6">
         <h3 className="font-bold mb-2">Terms & Conditions</h3>

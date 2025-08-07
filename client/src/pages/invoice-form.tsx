@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LineItem as LineItemType, Invoice } from "@shared/schema";
+import { LineItem as LineItemType, Invoice, BankDetails } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Plus, Trash2, FileOutput, Receipt, FileEdit, FileText, Eye } from "lucide-react";
@@ -21,6 +21,7 @@ interface InvoiceFormData {
   clientRegNumber: string;
   clientVatNumber: string;
   lineItems: LineItemType[];
+  bankDetails?: BankDetails;
   subtotal: number;
   vat: number;
   total: number;
@@ -78,7 +79,8 @@ const InvoiceForm = () => {
         status: invoiceData.status,
         dueDate: invoiceData.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         reminderCount: invoiceData.reminderCount || 0,
-        lastReminderSent: invoiceData.lastReminderSent || undefined,
+        lastReminderSent: invoiceData.lastReminderSent ? invoiceData.lastReminderSent.toISOString() : undefined,
+        bankDetails: invoiceData.bankDetails || undefined,
       });
     }
   }, [invoiceData]);
@@ -119,6 +121,17 @@ const InvoiceForm = () => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleBankDetailsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      bankDetails: {
+        ...prev.bankDetails,
+        [name]: value,
+      } as BankDetails,
     }));
   };
 
@@ -329,10 +342,77 @@ const InvoiceForm = () => {
               </div>
               <div>
                 <h3 className="text-lg font-medium mb-4 pb-2 border-b border-neutral-200">Bank Details</h3>
-                <div className="space-y-2">
-                  <p className="text-sm"><span className="font-medium">Bank:</span> First National Bank(FNB)</p>
-                  <p className="text-sm"><span className="font-medium">Account Number:</span> 62417570993</p>
-                  <p className="text-sm"><span className="font-medium">Branch Code:</span> 250655</p>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="bankName" className="text-sm font-medium text-neutral-500 mb-1">Bank Name</Label>
+                    <Input
+                      type="text"
+                      id="bankName"
+                      name="bankName"
+                      value={formData.bankDetails?.bankName || ""}
+                      onChange={handleBankDetailsChange}
+                      placeholder="e.g. First National Bank"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="accountName" className="text-sm font-medium text-neutral-500 mb-1">Account Name</Label>
+                    <Input
+                      type="text"
+                      id="accountName"
+                      name="accountName"
+                      value={formData.bankDetails?.accountName || ""}
+                      onChange={handleBankDetailsChange}
+                      placeholder="Account holder name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="accountNumber" className="text-sm font-medium text-neutral-500 mb-1">Account Number</Label>
+                    <Input
+                      type="text"
+                      id="accountNumber"
+                      name="accountNumber"
+                      value={formData.bankDetails?.accountNumber || ""}
+                      onChange={handleBankDetailsChange}
+                      placeholder="Account number"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <Label htmlFor="sortCode" className="text-sm font-medium text-neutral-500 mb-1">Sort Code / Branch Code</Label>
+                      <Input
+                        type="text"
+                        id="sortCode"
+                        name="sortCode"
+                        value={formData.bankDetails?.sortCode || ""}
+                        onChange={handleBankDetailsChange}
+                        placeholder="Optional"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <Label htmlFor="iban" className="text-sm font-medium text-neutral-500 mb-1">IBAN</Label>
+                      <Input
+                        type="text"
+                        id="iban"
+                        name="iban"
+                        value={formData.bankDetails?.iban || ""}
+                        onChange={handleBankDetailsChange}
+                        placeholder="Optional"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="swiftCode" className="text-sm font-medium text-neutral-500 mb-1">SWIFT Code</Label>
+                    <Input
+                      type="text"
+                      id="swiftCode"
+                      name="swiftCode"
+                      value={formData.bankDetails?.swiftCode || ""}
+                      onChange={handleBankDetailsChange}
+                      placeholder="Optional"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
