@@ -1,4 +1,6 @@
-import { users, type User, type InsertUser, type Invoice, type InsertInvoice, type BankDetails } from "@shared/schema";
+import { users, invoices, type User, type InsertUser, type Invoice, type InsertInvoice, type BankDetails } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -100,4 +102,57 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database storage implementation
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  // Invoice methods
+  async createInvoice(insertInvoice: InsertInvoice): Promise<Invoice> {
+    const [invoice] = await db
+      .insert(invoices)
+      .values(insertInvoice as any) // Type assertion for jsonb fields
+      .returning();
+    return invoice;
+  }
+
+  async getInvoice(id: number): Promise<Invoice | undefined> {
+    const [invoice] = await db.select().from(invoices).where(eq(invoices.id, id));
+    return invoice || undefined;
+  }
+
+  async getAllInvoices(): Promise<Invoice[]> {
+    return await db.select().from(invoices);
+  }
+
+  async updateInvoice(id: number, invoiceUpdate: Partial<InsertInvoice>): Promise<Invoice | undefined> {
+    const [invoice] = await db
+      .update(invoices)
+      .set(invoiceUpdate as any) // Type assertion for jsonb fields
+      .where(eq(invoices.id, id))
+      .returning();
+    return invoice || undefined;
+  }
+
+  async deleteInvoice(id: number): Promise<boolean> {
+    const result = await db.delete(invoices).where(eq(invoices.id, id));
+    return (result.count || 0) > 0;
+  }
+}
+
+export const storage = new DatabaseStorage();

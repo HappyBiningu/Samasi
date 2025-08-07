@@ -6,7 +6,7 @@ A full-stack invoice management application built with React, Express, and TypeS
 ## Architecture
 - **Frontend**: React + Vite with TypeScript
 - **Backend**: Express.js with TypeScript
-- **Storage**: In-memory storage (MemStorage) for development
+- **Database**: PostgreSQL with Drizzle ORM for data persistence
 - **Styling**: Tailwind CSS + shadcn/ui components
 - **State Management**: TanStack Query for server state
 - **Routing**: Wouter for client-side routing
@@ -39,9 +39,14 @@ A full-stack invoice management application built with React, Express, and TypeS
 - Added editable bank details functionality to invoice system
 - Fixed DOM nesting warnings in navigation components
 - Updated database schema to support bank details storage
+- Migrated from in-memory storage to PostgreSQL database with Drizzle ORM
+- Added editable bank details functionality to invoice system
+- Fixed DOM nesting warnings in navigation components
+- Updated database schema to support bank details storage
 
 ## Development Notes
 - Uses port 5000 for both frontend and backend serving
 - Vite handles frontend development with HMR
 - Express serves API routes under /api prefix
-- In-memory storage suitable for development/demo purposes
+- PostgreSQL database with persistent storage for production use
+- Database schema managed through Drizzle migrations with `npm run db:push`
