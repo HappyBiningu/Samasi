@@ -51,8 +51,20 @@ export class MemStorage implements IStorage {
     const id = this.invoiceCurrentId++;
     const now = new Date();
     const invoice: Invoice = { 
-      ...insertInvoice, 
-      id, 
+      id,
+      invoiceNumber: insertInvoice.invoiceNumber,
+      invoiceDate: insertInvoice.invoiceDate,
+      clientName: insertInvoice.clientName,
+      clientRegNumber: insertInvoice.clientRegNumber,
+      clientVatNumber: insertInvoice.clientVatNumber,
+      lineItems: insertInvoice.lineItems as any, // Type assertion for in-memory storage
+      subtotal: insertInvoice.subtotal,
+      vat: insertInvoice.vat,
+      total: insertInvoice.total,
+      status: insertInvoice.status || "unpaid",
+      lastReminderSent: insertInvoice.lastReminderSent || null,
+      reminderCount: insertInvoice.reminderCount || 0,
+      dueDate: insertInvoice.dueDate || null,
       createdAt: now 
     };
     this.invoices.set(id, invoice);
@@ -73,7 +85,8 @@ export class MemStorage implements IStorage {
 
     const updatedInvoice: Invoice = {
       ...existingInvoice,
-      ...invoiceUpdate
+      ...invoiceUpdate,
+      lineItems: invoiceUpdate.lineItems ? (invoiceUpdate.lineItems as any) : existingInvoice.lineItems
     };
     
     this.invoices.set(id, updatedInvoice);
