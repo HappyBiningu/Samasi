@@ -151,7 +151,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteInvoice(id: number): Promise<boolean> {
     const result = await db.delete(invoices).where(eq(invoices.id, id));
-    return (result.count || 0) > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 }
 
