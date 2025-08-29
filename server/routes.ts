@@ -273,6 +273,182 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CSV Export endpoints
+  app.get("/api/export/invoices.csv", async (req: Request, res: Response) => {
+    try {
+      const invoices = await storage.getAllInvoices();
+      
+      // Create CSV headers
+      const headers = [
+        'Invoice Number',
+        'Invoice Date',
+        'Client Name',
+        'Client Reg Number',
+        'Client VAT Number',
+        'Subtotal (R)',
+        'VAT (R)',
+        'Total (R)',
+        'Status',
+        'Due Date',
+        'Reminder Count',
+        'Last Reminder Sent',
+        'Created At',
+        'Line Items',
+        'Bank Name',
+        'Account Name',
+        'Account Number',
+        'Sort Code',
+        'IBAN',
+        'Swift Code'
+      ];
+      
+      // Convert invoices to CSV rows
+      const csvRows = invoices.map(invoice => [
+        invoice.invoiceNumber,
+        invoice.invoiceDate,
+        invoice.clientName,
+        invoice.clientRegNumber,
+        invoice.clientVatNumber,
+        invoice.subtotal,
+        invoice.vat,
+        invoice.total,
+        invoice.status,
+        invoice.dueDate || '',
+        invoice.reminderCount,
+        invoice.lastReminderSent || '',
+        invoice.createdAt,
+        JSON.stringify(invoice.lineItems),
+        invoice.bankDetails?.bankName || '',
+        invoice.bankDetails?.accountName || '',
+        invoice.bankDetails?.accountNumber || '',
+        invoice.bankDetails?.sortCode || '',
+        invoice.bankDetails?.iban || '',
+        invoice.bankDetails?.swiftCode || ''
+      ]);
+      
+      // Combine headers and rows
+      const csvContent = [headers, ...csvRows]
+        .map(row => row.map(field => `"${field}"`).join(','))
+        .join('\n');
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename="invoices.csv"');
+      res.send(csvContent);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to export invoices" });
+    }
+  });
+
+  app.get("/api/export/analytics.csv", async (req: Request, res: Response) => {
+    try {
+      const invoices = await storage.getAllInvoices();
+      
+      // Create analytics summary CSV
+      const analytics = {
+        totalRevenue: invoices.reduce((sum, inv) => sum + inv.total, 0),
+        totalInvoices: invoices.length,
+        paidInvoices: invoices.filter(inv => inv.status === 'paid').length,
+        unpaidInvoices: invoices.filter(inv => inv.status === 'unpaid').length,
+        averageInvoiceValue: invoices.length > 0 ? invoices.reduce((sum, inv) => sum + inv.total, 0) / invoices.length : 0,
+        paymentRate: invoices.length > 0 ? (invoices.filter(inv => inv.status === 'paid').length / invoices.length) * 100 : 0
+      };
+      
+      const headers = ['Metric', 'Value'];
+      const csvRows = [
+        ['Total Revenue (R)', analytics.totalRevenue],
+        ['Total Invoices', analytics.totalInvoices],
+        ['Paid Invoices', analytics.paidInvoices],
+        ['Unpaid Invoices', analytics.unpaidInvoices],
+        ['Average Invoice Value (R)', analytics.averageInvoiceValue.toFixed(2)],
+        ['Payment Rate (%)', analytics.paymentRate.toFixed(1)]
+      ];
+      
+      const csvContent = [headers, ...csvRows]
+        .map(row => row.map(field => `"${field}"`).join(','))
+        .join('\n');
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename="analytics_summary.csv"');
+      res.send(csvContent);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to export analytics" });
+    }
+  });
+
+  app.get("/api/export/clients.csv", async (req: Request, res: Response) => {
+    try {
+      const invoices = await storage.getAllInvoices();
+      
+      // Group by clients
+      const clientStats = invoices.reduce((acc: Record<string, any>, invoice) => {
+        const client = invoice.clientName;
+        if (!acc[client]) {
+          acc[client] = {
+            clientName: client,
+            clientRegNumber: invoice.clientRegNumber,
+            clientVatNumber: invoice.clientVatNumber,
+            totalAmount: 0,
+            invoiceCount: 0,
+            paidAmount: 0,
+            paidCount: 0,
+            lastInvoiceDate: invoice.invoiceDate
+          };
+        }
+        
+        acc[client].totalAmount += invoice.total;
+        acc[client].invoiceCount += 1;
+        
+        if (invoice.status === 'paid') {
+          acc[client].paidAmount += invoice.total;
+          acc[client].paidCount += 1;
+        }
+        
+        // Update last invoice date if newer
+        if (new Date(invoice.invoiceDate) > new Date(acc[client].lastInvoiceDate)) {
+          acc[client].lastInvoiceDate = invoice.invoiceDate;
+        }
+        
+        return acc;
+      }, {});
+      
+      const headers = [
+        'Client Name',
+        'Registration Number',
+        'VAT Number',
+        'Total Amount (R)',
+        'Invoice Count',
+        'Paid Amount (R)',
+        'Paid Count',
+        'Payment Rate (%)',
+        'Average Invoice (R)',
+        'Last Invoice Date'
+      ];
+      
+      const csvRows = Object.values(clientStats).map((client: any) => [
+        client.clientName,
+        client.clientRegNumber,
+        client.clientVatNumber,
+        client.totalAmount,
+        client.invoiceCount,
+        client.paidAmount,
+        client.paidCount,
+        client.invoiceCount > 0 ? ((client.paidCount / client.invoiceCount) * 100).toFixed(1) : '0',
+        client.invoiceCount > 0 ? (client.totalAmount / client.invoiceCount).toFixed(2) : '0',
+        client.lastInvoiceDate
+      ]);
+      
+      const csvContent = [headers, ...csvRows]
+        .map(row => row.map(field => `"${field}"`).join(','))
+        .join('\n');
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename="clients_summary.csv"');
+      res.send(csvContent);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to export client data" });
+    }
+  });
+
   // use storage to perform CRUD operations on the storage interface
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
 

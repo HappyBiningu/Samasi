@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, ScatterChart, Scatter, Area, AreaChart } from "recharts";
-import { TrendingUp, DollarSign, FileText, Clock, CheckCircle, AlertCircle, Users, Target } from "lucide-react";
+import { TrendingUp, DollarSign, FileText, Clock, CheckCircle, AlertCircle, Users, Target, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface AnalyticsOverview {
   totalRevenue: number;
@@ -94,6 +95,19 @@ export default function Analytics() {
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   };
 
+  const handleExport = (type: 'invoices' | 'analytics' | 'clients') => {
+    const baseUrl = window.location.origin;
+    const exportUrl = `${baseUrl}/api/export/${type}.csv`;
+    
+    // Create temporary link to trigger download
+    const link = document.createElement('a');
+    link.href = exportUrl;
+    link.download = `${type}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   if (overviewLoading || revenueLoading || statusLoading || timelineLoading || clientLoading || distributionLoading) {
     return (
@@ -117,7 +131,38 @@ export default function Analytics() {
 
   return (
     <div className="container mx-auto p-6" data-testid="analytics-dashboard">
-      <h1 className="text-3xl font-bold mb-6" data-testid="title-analytics">Analytics Dashboard</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold" data-testid="title-analytics">Analytics Dashboard</h1>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => handleExport('invoices')}
+            variant="outline"
+            size="sm"
+            data-testid="button-export-invoices"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export Invoices
+          </Button>
+          <Button
+            onClick={() => handleExport('clients')}
+            variant="outline"
+            size="sm"
+            data-testid="button-export-clients"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export Clients
+          </Button>
+          <Button
+            onClick={() => handleExport('analytics')}
+            variant="outline"
+            size="sm"
+            data-testid="button-export-analytics"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export Analytics
+          </Button>
+        </div>
+      </div>
       
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
