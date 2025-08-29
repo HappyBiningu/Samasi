@@ -40,6 +40,15 @@ const Navbar = () => {
                 Analytics
               </Link>
             </li>
+            <li>
+              <Link 
+                href="/ml-insights"
+                className={`${location === "/ml-insights" ? "text-primary border-b-2 border-primary" : "text-neutral-500 hover:text-primary"} font-medium pb-1`}
+                data-testid="link-ml-insights"
+              >
+                ML Insights
+              </Link>
+            </li>
           </ul>
         </nav>
       </div>

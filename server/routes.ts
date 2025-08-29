@@ -450,6 +450,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Initialize ML models
+  const paymentPredictor = new PaymentDelayPredictor();
+  const riskScorer = new ClientRiskScorer();
+  const anomalyDetector = new AnomalyDetector();
+  const clientSegmentation = new ClientSegmentation();
+
+  // ML API endpoints
+  app.get("/api/ml/payment-predictions", async (req: Request, res: Response) => {
+    try {
+      const invoices = await storage.getAllInvoices();
+      
+      // Train the model if not already trained
+      paymentPredictor.train(invoices);
+      
+      const predictions = invoices
+        .filter(inv => inv.status === 'unpaid')
+        .map(invoice => ({
+          invoiceId: invoice.id,
+          invoiceNumber: invoice.invoiceNumber,
+          clientName: invoice.clientName,
+          amount: invoice.total,
+          ...paymentPredictor.predict(invoice, invoices)
+        }));
+
+      res.json(predictions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate payment predictions" });
+    }
+  });
+
+  app.get("/api/ml/client-risk-scores", async (req: Request, res: Response) => {
+    try {
+      const invoices = await storage.getAllInvoices();
+      
+      // Get unique clients
+      const clients = [...new Set(invoices.map(inv => inv.clientName))];
+      
+      const riskScores = clients.map(clientName => ({
+        clientName,
+        ...riskScorer.calculateRiskScore(clientName, invoices)
+      }));
+
+      res.json(riskScores);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to calculate risk scores" });
+    }
+  });
+
+  app.get("/api/ml/anomaly-detection", async (req: Request, res: Response) => {
+    try {
+      const invoices = await storage.getAllInvoices();
+      const results = anomalyDetector.detectAnomalies(invoices);
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to detect anomalies" });
+    }
+  });
+
+  app.get("/api/ml/client-segmentation", async (req: Request, res: Response) => {
+    try {
+      const invoices = await storage.getAllInvoices();
+      const segmentation = clientSegmentation.segmentClients(invoices);
+      res.json(segmentation);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to segment clients" });
+    }
+  });
+
+  app.post("/api/ml/predict-single", async (req: Request, res: Response) => {
+    try {
+      const { invoiceId } = req.body;
+      
+      if (!invoiceId) {
+        return res.status(400).json({ message: "Invoice ID required" });
+      }
+
+      const invoices = await storage.getAllInvoices();
+      const invoice = await storage.getInvoice(invoiceId);
+      
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+
+      // Train the model
+      paymentPredictor.train(invoices);
+      
+      const prediction = paymentPredictor.predict(invoice, invoices);
+      const riskScore = riskScorer.calculateRiskScore(invoice.clientName, invoices);
+
+      res.json({
+        invoice: {
+          id: invoice.id,
+          invoiceNumber: invoice.invoiceNumber,
+          clientName: invoice.clientName,
+          total: invoice.total
+        },
+        prediction,
+        riskScore
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate prediction" });
+    }
+  });
+
+  app.get("/api/ml/insights-summary", async (req: Request, res: Response) => {
+    try {
+      const invoices = await storage.getAllInvoices();
+      
+      // Train payment predictor
+      const trainingResult = paymentPredictor.train(invoices);
+      
+      // Get all insights
+      const unpaidInvoices = invoices.filter(inv => inv.status === 'unpaid');
+      const predictions = unpaidInvoices.map(invoice => 
+        paymentPredictor.predict(invoice, invoices)
+      );
+      
+      const clients = [...new Set(invoices.map(inv => inv.clientName))];
+      const riskScores = clients.map(clientName => 
+        riskScorer.calculateRiskScore(clientName, invoices)
+      );
+      
+      const anomalies = anomalyDetector.detectAnomalies(invoices);
+      const segmentation = clientSegmentation.segmentClients(invoices);
+
+      // Calculate summary metrics
+      const avgDelayDays = predictions.length > 0 
+        ? predictions.reduce((sum, p) => sum + p.delayDays, 0) / predictions.length 
+        : 0;
+      
+      const highRiskClients = riskScores.filter(r => r.category === 'high').length;
+      const atRiskRevenue = unpaidInvoices
+        .filter(inv => {
+          const prediction = paymentPredictor.predict(inv, invoices);
+          return prediction.riskLevel === 'high';
+        })
+        .reduce((sum, inv) => sum + inv.total, 0);
+
+      res.json({
+        summary: {
+          totalInvoices: invoices.length,
+          unpaidInvoices: unpaidInvoices.length,
+          avgPredictedDelay: Math.round(avgDelayDays),
+          highRiskClients,
+          atRiskRevenue,
+          totalAnomalies: anomalies.summary.totalAnomalies,
+          clientSegments: segmentation.segmentSummary.length,
+          modelTrained: trainingResult.success
+        },
+        recentPredictions: predictions.slice(0, 5),
+        topRiskClients: riskScores
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 5),
+        recentAnomalies: anomalies.anomalies
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 5)
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate insights summary" });
+    }
+  });
+
   // use storage to perform CRUD operations on the storage interface
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
 
