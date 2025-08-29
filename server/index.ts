@@ -3,6 +3,12 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
+// Debug: Check if environment variables are loaded
+console.log("Environment check:");
+console.log("DATABASE_URL:", process.env.DATABASE_URL ? "✓ Set" : "✗ Missing");
+console.log("SESSION_SECRET:", process.env.SESSION_SECRET ? "✓ Set" : "✗ Missing");
+console.log("NODE_ENV:", process.env.NODE_ENV);
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
