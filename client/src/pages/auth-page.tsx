@@ -44,11 +44,9 @@ export default function AuthPage() {
       <div className="w-full max-w-md">
         <Card className="overflow-hidden border-primary/20">
           <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-6">
-            <div className="flex items-center mb-4">
-              <img src={logoPath} alt="Samasi Logo" className="h-12 w-auto mr-4" />
-              <h2 className="text-2xl font-bold">Samasi Invoice Generator</h2>
+            <div className="flex items-center justify-center">
+              <img src={logoPath} alt="Samasi Logo" className="h-12 w-auto" />
             </div>
-            <p className="text-neutral-700 mb-6">Generate professional invoices for your clients with the Samasi branded template.</p>
           </div>
           
           <form onSubmit={handleLogin}>
@@ -93,16 +91,6 @@ export default function AuthPage() {
                 ) : (
                   "Sign In"
                 )}
-              </Button>
-              <Button 
-                type="button" 
-                variant="secondary"
-                className="w-full"
-                onClick={handleDemoLogin}
-                disabled={loginMutation.isPending}
-                data-testid="button-demo-login"
-              >
-                Use Demo Credentials
               </Button>
             </CardFooter>
           </form>
