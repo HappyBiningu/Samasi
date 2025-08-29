@@ -37,7 +37,7 @@ export function setupAuth(app: Express) {
     resave: false,
     saveUninitialized: false,
     store: new PostgresSessionStore({
-      conString: process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL,
+      conString: "postgresql://neondb_owner:npg_4QE1vOrmTyjF@ep-muddy-credit-ae6zy7i3-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require",
       createTableIfMissing: true,
     }),
     cookie: {

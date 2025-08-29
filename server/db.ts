@@ -8,14 +8,8 @@ neonConfig.webSocketConstructor = ws;
 // Force use of fetch for all queries to avoid WebSocket SSL issues
 neonConfig.poolQueryViaFetch = true;
 
-// Support both NETLIFY_DATABASE_URL (for Netlify deployment) and DATABASE_URL (for Replit)
-const databaseUrl = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL;
-
-if (!databaseUrl) {
-  throw new Error(
-    "DATABASE_URL or NETLIFY_DATABASE_URL must be set. Did you forget to provision a database?",
-  );
-}
+// Hardcoded database connection string
+const databaseUrl = "postgresql://neondb_owner:npg_4QE1vOrmTyjF@ep-muddy-credit-ae6zy7i3-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require";
 
 export const pool = new Pool({ connectionString: databaseUrl });
 export const db = drizzle({ client: pool, schema });
