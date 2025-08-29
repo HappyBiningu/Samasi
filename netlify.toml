@@ -1,10 +1,13 @@
 [build]
-base = "."               # Run build from the root folder (where package.json is)
+base = "."
 command = "npm run build"
-publish = "dist"  # Path to built static site
+publish = "dist"
 
 [build.environment]
 NODE_VERSION = "20"
+DATABASE_URL = "postgresql://neondb_owner:npg_4QE1vOrmTyjF@ep-muddy-credit-ae6zy7i3-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
+SESSION_SECRET = "your-secret-key-here-change-in-production"
+NODE_ENV = "development"
 
 [[redirects]]
 from = "/*"
