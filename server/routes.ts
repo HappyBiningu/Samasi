@@ -185,6 +185,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/analytics/invoice-timeline", async (req: Request, res: Response) => {
+    try {
+      const invoices = await storage.getAllInvoices();
+      
+      const timelineData = invoices.map(invoice => ({
+        date: invoice.invoiceDate,
+        amount: invoice.total,
+        status: invoice.status,
+        clientName: invoice.clientName,
+        invoiceNumber: invoice.invoiceNumber
+      })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      res.json(timelineData);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch invoice timeline" });
+    }
+  });
+
+  app.get("/api/analytics/client-performance", async (req: Request, res: Response) => {
+    try {
+      const invoices = await storage.getAllInvoices();
+      
+      const clientStats = invoices.reduce((acc: Record<string, any>, invoice) => {
+        const client = invoice.clientName;
+        if (!acc[client]) {
+          acc[client] = {
+            clientName: client,
+            totalAmount: 0,
+            invoiceCount: 0,
+            paidAmount: 0,
+            paidCount: 0
+          };
+        }
+        
+        acc[client].totalAmount += invoice.total;
+        acc[client].invoiceCount += 1;
+        
+        if (invoice.status === 'paid') {
+          acc[client].paidAmount += invoice.total;
+          acc[client].paidCount += 1;
+        }
+        
+        return acc;
+      }, {});
+      
+      const chartData = Object.values(clientStats).map((client: any) => ({
+        ...client,
+        averageInvoice: client.invoiceCount > 0 ? client.totalAmount / client.invoiceCount : 0,
+        paymentRate: client.invoiceCount > 0 ? (client.paidCount / client.invoiceCount) * 100 : 0
+      }));
+      
+      res.json(chartData);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch client performance" });
+    }
+  });
+
+  app.get("/api/analytics/amount-distribution", async (req: Request, res: Response) => {
+    try {
+      const invoices = await storage.getAllInvoices();
+      
+      // Create amount ranges for distribution
+      const ranges = [
+        { min: 0, max: 1000, label: 'R0 - R1,000' },
+        { min: 1000, max: 5000, label: 'R1,000 - R5,000' },
+        { min: 5000, max: 10000, label: 'R5,000 - R10,000' },
+        { min: 10000, max: 50000, label: 'R10,000 - R50,000' },
+        { min: 50000, max: Infinity, label: 'R50,000+' }
+      ];
+      
+      const distribution = ranges.map(range => {
+        const count = invoices.filter(invoice => 
+          invoice.total >= range.min && invoice.total < range.max
+        ).length;
+        
+        return {
+          range: range.label,
+          count,
+          value: count
+        };
+      }).filter(item => item.count > 0);
+      
+      res.json(distribution);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch amount distribution" });
+    }
+  });
+
   // use storage to perform CRUD operations on the storage interface
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
 
