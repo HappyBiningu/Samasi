@@ -6,8 +6,8 @@ import path from 'path';
 
 // Try to load .env file explicitly
 try {
-  const result = config({ path: path.resolve(process.cwd(), '.env') });
-  if (result.error) {
+  const dotenvResult = config({ path: path.resolve(process.cwd(), '.env') });
+  if (dotenvResult.error) {
     console.log("No .env file found, using environment variables or defaults");
   } else {
     console.log("✓ .env file loaded successfully");

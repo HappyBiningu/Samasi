@@ -1,0 +1,37 @@
+ode.js v22.18.0
+mac@macs-MacBook-Pro client % export DATABASE_URL="postgresql://neondb_owner:npg_4QE1vOrmTyjF@ep-muddy-credit-ae6zy7i3-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
+export SESSION_SECRET="your-secret-key-here-change-in-production"
+export NODE_ENV="development"
+
+mac@macs-MacBook-Pro client % npm run dev
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[dotenv@17.2.1] injecting env (2) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+Error loading .env file: ReferenceError: config is not defined
+    at <anonymous> (/Users/mac/Documents/Samasi/server/index.ts:13:18)
+Environment check:
+DATABASE_URL: ✓ Set
+SESSION_SECRET: ✓ Set
+NODE_ENV: development
+Current working directory: /Users/mac/Documents/Samasi
+10:57:08 PM [express] serving on port 5000
+Admin user already exists
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+10:57:41 PM [express] GET /api/user 401 in 2ms
+Login failed for: admin@ufs.co.zw - User not found or wrong password
+10:57:57 PM [express] POST /api/login 401 in 1581ms :: {"message":"Invalid credentials"}
+Login failed for: admin@ufs.co.zw - User not found or wrong password
+10:57:59 PM [express] POST /api/login 401 in 413ms :: {"message":"Invalid credentials"}
+Login successful for: admin@samasi.co.za
+10:59:14 PM [express] POST /api/login 200 in 6056ms :: {"id":3,"email":"admin@samasi.co.za"}
+10:59:16 PM [express] GET /api/invoices 200 in 1455ms :: []
+10:59:52 PM [express] GET /api/analytics/overview 200 in 1545ms :: {"totalRevenue":0,"totalInvoices":…
+10:59:52 PM [express] GET /api/analytics/client-performance 200 in 1518ms :: []
+10:59:52 PM [express] GET /api/analytics/invoice-timeline 200 in 1533ms :: []
+10:59:52 PM [express] GET /api/analytics/amount-distribution 200 in 1522ms :: []
+10:59:52 PM [express] GET /api/analytics/status-breakdown 200 in 1550ms :: []
+10:59:52 PM [express] GET /api/analytics/revenue-by-month 200 in 1561ms :: []
