@@ -4,8 +4,12 @@ import { storage } from "./storage";
 import { insertInvoiceSchema, type InsertInvoice } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { PaymentDelayPredictor, ClientRiskScorer, AnomalyDetector, ClientSegmentation } from "./ml-models";
+import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication
+  setupAuth(app);
+  
   // put application routes here
   // prefix all routes with /api
 
@@ -485,7 +489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const invoices = await storage.getAllInvoices();
       
       // Get unique clients
-      const clients = [...new Set(invoices.map(inv => inv.clientName))];
+      const clients = Array.from(new Set(invoices.map(inv => inv.clientName)));
       
       const riskScores = clients.map(clientName => ({
         clientName,
@@ -567,7 +571,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         paymentPredictor.predict(invoice, invoices)
       );
       
-      const clients = [...new Set(invoices.map(inv => inv.clientName))];
+      const clients = Array.from(new Set(invoices.map(inv => inv.clientName)));
       const riskScores = clients.map(clientName => 
         riskScorer.calculateRiskScore(clientName, invoices)
       );
