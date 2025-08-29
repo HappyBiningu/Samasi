@@ -46,7 +46,7 @@ export default function Analytics() {
     return new Intl.NumberFormat('en-ZA', {
       style: 'currency',
       currency: 'ZAR',
-    }).format(amount / 100);
+    }).format(amount);
   };
 
   const formatMonth = (monthString: string) => {
