@@ -29,14 +29,17 @@ const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#6b7280'];
 export default function Analytics() {
   const { data: overview, isLoading: overviewLoading } = useQuery<AnalyticsOverview>({
     queryKey: ['/api/analytics/overview'],
+    staleTime: 0, // Always refetch to get latest data
   });
 
   const { data: revenueData, isLoading: revenueLoading } = useQuery<RevenueData[]>({
     queryKey: ['/api/analytics/revenue-by-month'],
+    staleTime: 0, // Always refetch to get latest data
   });
 
   const { data: statusData, isLoading: statusLoading } = useQuery<StatusData[]>({
     queryKey: ['/api/analytics/status-breakdown'],
+    staleTime: 0, // Always refetch to get latest data
   });
 
   const formatCurrency = (amount: number) => {
@@ -51,6 +54,9 @@ export default function Analytics() {
     const date = new Date(parseInt(year), parseInt(month) - 1);
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   };
+
+  // Debug: Log the data to console
+  console.log('Analytics data:', { overview, revenueData, statusData });
 
   if (overviewLoading || revenueLoading || statusLoading) {
     return (
@@ -109,7 +115,7 @@ export default function Analytics() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="text-payment-rate">
-              {overview?.paymentRate.toFixed(1) || 0}%
+              {overview?.paymentRate ? overview.paymentRate.toFixed(1) : "0"}%
             </div>
           </CardContent>
         </Card>
