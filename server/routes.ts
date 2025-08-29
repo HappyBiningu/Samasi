@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertInvoiceSchema, type InsertInvoice } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
+import { PaymentDelayPredictor, ClientRiskScorer, AnomalyDetector, ClientSegmentation } from "./ml-models";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // put application routes here
