@@ -90,9 +90,12 @@ export function setupAuth(app: Express) {
           password: await hashPassword("Samasi@2025"),
         });
         console.log("Admin user created successfully");
+      } else {
+        console.log("Admin user already exists");
       }
     } catch (error) {
       console.error("Error creating admin user:", error);
+      console.error("Database connection might be failing. Check your .env file.");
     }
   }
 
@@ -120,8 +123,25 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.status(200).json({ id: req.user!.id, email: req.user!.email });
+  app.post("/api/login", (req, res, next) => {
+    passport.authenticate("local", (err, user, info) => {
+      if (err) {
+        console.error("Login error:", err);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+      if (!user) {
+        console.log("Login failed for:", req.body.email, "- User not found or wrong password");
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      req.login(user, (loginErr) => {
+        if (loginErr) {
+          console.error("Session login error:", loginErr);
+          return next(loginErr);
+        }
+        console.log("Login successful for:", user.email);
+        res.status(200).json({ id: user.id, email: user.email });
+      });
+    })(req, res, next);
   });
 
   app.post("/api/logout", (req, res, next) => {
