@@ -1,57 +1,38 @@
+import { drizzle } from "drizzle-orm/neon-serverless";
+import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
+import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import { users, insertUserSchema, type User } from "@shared/schema";
+import { db } from "./db";
 import { Express } from "express";
-import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { User as SelectUser } from "@shared/schema";
-import connectPg from "connect-pg-simple";
 
-declare global {
-  namespace Express {
-    interface User extends SelectUser {}
-  }
-}
-
-const scryptAsync = promisify(scrypt);
-
-async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString("hex")}.${salt}`;
-}
-
-async function comparePasswords(supplied: string, stored: string) {
-  const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
-}
+// Hardcoded session secret
+const SESSION_SECRET = "your-secret-key-here-change-in-production";
 
 export function setupAuth(app: Express) {
-  const PostgresSessionStore = connectPg(session);
-  
-  const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "your-secret-key-here",
-    resave: false,
-    saveUninitialized: false,
-    store: new PostgresSessionStore({
-      conString: process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL,
-      createTableIfMissing: true,
-    }),
-    cookie: {
-      secure: process.env.NODE_ENV === 'production' || !!process.env.NETLIFY_DATABASE_URL, // Enable secure cookies for Netlify deployment
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-    },
-  };
+  // Configure session middleware
+  app.use(
+    session({
+      secret: SESSION_SECRET,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: false, // Set to true in production with HTTPS
+        maxAge: 1000 * 60 * 60 * 24, // 24 hours
+      },
+    })
+  );
 
-  app.set("trust proxy", 1);
-  app.use(session(sessionSettings));
+  // Initialize Passport
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // Configure local strategy
   passport.use(
     new LocalStrategy(
       { usernameField: "email" },
@@ -70,7 +51,10 @@ export function setupAuth(app: Express) {
     )
   );
 
+  // Serialize user for session
   passport.serializeUser((user, done) => done(null, user.id));
+
+  // Deserialize user from session
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
@@ -156,3 +140,18 @@ export function setupAuth(app: Express) {
     res.json({ id: req.user!.id, email: req.user!.email });
   });
 }
+
+async function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
+
+async function comparePasswords(supplied: string, stored: string) {
+  const [hashed, salt] = stored.split(".");
+  const hashedBuf = Buffer.from(hashed, "hex");
+  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+  return timingSafeEqual(hashedBuf, suppliedBuf);
+}
+
+const scryptAsync = promisify(scrypt);
