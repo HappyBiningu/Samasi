@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -29,31 +29,42 @@ function Router() {
   );
 }
 
+function AppContent() {
+  const [location] = useLocation();
+  const isAuthPage = location === '/auth';
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {!isAuthPage && <Navbar />}
+      <main className={isAuthPage ? "flex-1" : "flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8"}>
+        <Router />
+      </main>
+      {!isAuthPage && (
+        <footer className="bg-white border-t border-neutral-200 mt-auto">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <div className="mb-4 md:mb-0">
+                <p className="text-neutral-500 text-sm">&copy; {new Date().getFullYear()} Invoice Generator. All rights reserved.</p>
+              </div>
+              <div className="flex space-x-6">
+                <a href="#" className="text-neutral-500 hover:text-primary text-sm">Terms</a>
+                <a href="#" className="text-neutral-500 hover:text-primary text-sm">Privacy</a>
+                <a href="#" className="text-neutral-500 hover:text-primary text-sm">Support</a>
+              </div>
+            </div>
+          </div>
+        </footer>
+      )}
+    </div>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <Router />
-            </main>
-          <footer className="bg-white border-t border-neutral-200 mt-auto">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <div className="flex flex-col md:flex-row justify-between items-center">
-                <div className="mb-4 md:mb-0">
-                  <p className="text-neutral-500 text-sm">&copy; {new Date().getFullYear()} Invoice Generator. All rights reserved.</p>
-                </div>
-                <div className="flex space-x-6">
-                  <a href="#" className="text-neutral-500 hover:text-primary text-sm">Terms</a>
-                  <a href="#" className="text-neutral-500 hover:text-primary text-sm">Privacy</a>
-                  <a href="#" className="text-neutral-500 hover:text-primary text-sm">Support</a>
-                </div>
-              </div>
-            </div>
-          </footer>
-          </div>
+          <AppContent />
           <Toaster />
         </TooltipProvider>
       </AuthProvider>
