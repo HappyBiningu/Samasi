@@ -37,11 +37,11 @@ export function setupAuth(app: Express) {
     resave: false,
     saveUninitialized: false,
     store: new PostgresSessionStore({
-      conString: process.env.DATABASE_URL,
+      conString: process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL,
       createTableIfMissing: true,
     }),
     cookie: {
-      secure: false, // Set to true in production with HTTPS
+      secure: process.env.NODE_ENV === 'production' || !!process.env.NETLIFY_DATABASE_URL, // Enable secure cookies for Netlify deployment
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
     },
