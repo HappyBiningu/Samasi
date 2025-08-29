@@ -5,10 +5,8 @@ import * as schema from "@shared/schema";
 
 // Configure WebSocket for Replit environment
 neonConfig.webSocketConstructor = ws;
-// In development, disable WebSocket pooling to avoid certificate issues
-if (process.env.NODE_ENV === 'development') {
-  neonConfig.poolQueryViaFetch = true;
-}
+// Force use of fetch for all queries to avoid WebSocket SSL issues
+neonConfig.poolQueryViaFetch = true;
 
 // Support both NETLIFY_DATABASE_URL (for Netlify deployment) and DATABASE_URL (for Replit)
 const databaseUrl = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL;
