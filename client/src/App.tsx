@@ -8,6 +8,7 @@ import Navbar from "@/components/navbar";
 import Home from "@/pages/home";
 import InvoiceForm from "@/pages/invoice-form";
 import InvoicesList from "@/pages/invoices-list";
+import Analytics from "@/pages/analytics";
 
 function Router() {
   return (
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/new-invoice" component={InvoiceForm} />
       <Route path="/edit-invoice/:id" component={InvoiceForm} />
       <Route path="/invoices" component={InvoicesList} />
+      <Route path="/analytics" component={Analytics} />
       <Route component={NotFound} />
     </Switch>
   );

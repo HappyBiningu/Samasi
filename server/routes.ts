@@ -100,6 +100,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics endpoints
+  app.get("/api/analytics/overview", async (req: Request, res: Response) => {
+    try {
+      const invoices = await storage.getAllInvoices();
+      
+      const totalRevenue = invoices.reduce((sum, invoice) => sum + invoice.total, 0);
+      const totalInvoices = invoices.length;
+      const paidInvoices = invoices.filter(inv => inv.status === 'paid').length;
+      const unpaidInvoices = invoices.filter(inv => inv.status === 'unpaid').length;
+      const overdueInvoices = invoices.filter(inv => {
+        if (!inv.dueDate) return false;
+        return new Date(inv.dueDate) < new Date() && inv.status !== 'paid';
+      }).length;
+      
+      const averageInvoiceValue = totalInvoices > 0 ? totalRevenue / totalInvoices : 0;
+      const paymentRate = totalInvoices > 0 ? (paidInvoices / totalInvoices) * 100 : 0;
+      
+      res.json({
+        totalRevenue,
+        totalInvoices,
+        paidInvoices,
+        unpaidInvoices,
+        overdueInvoices,
+        averageInvoiceValue,
+        paymentRate
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch analytics overview" });
+    }
+  });
+
+  app.get("/api/analytics/revenue-by-month", async (req: Request, res: Response) => {
+    try {
+      const invoices = await storage.getAllInvoices();
+      
+      const revenueByMonth = invoices.reduce((acc: Record<string, number>, invoice) => {
+        const date = new Date(invoice.invoiceDate);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (!acc[monthKey]) {
+          acc[monthKey] = 0;
+        }
+        
+        if (invoice.status === 'paid') {
+          acc[monthKey] += invoice.total;
+        }
+        
+        return acc;
+      }, {});
+      
+      const chartData = Object.entries(revenueByMonth)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([month, revenue]) => ({
+          month,
+          revenue
+        }));
+      
+      res.json(chartData);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch revenue by month" });
+    }
+  });
+
+  app.get("/api/analytics/status-breakdown", async (req: Request, res: Response) => {
+    try {
+      const invoices = await storage.getAllInvoices();
+      
+      const statusCounts = invoices.reduce((acc: Record<string, number>, invoice) => {
+        const status = invoice.status;
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {});
+      
+      const chartData = Object.entries(statusCounts).map(([status, count]) => ({
+        status: status.charAt(0).toUpperCase() + status.slice(1),
+        count,
+        value: count
+      }));
+      
+      res.json(chartData);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch status breakdown" });
+    }
+  });
+
   // use storage to perform CRUD operations on the storage interface
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
 
