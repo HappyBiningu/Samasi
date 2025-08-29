@@ -87,7 +87,7 @@ export function setupAuth(app: Express) {
       if (!existingUser) {
         await storage.createUser({
           email: "admin@samasi.co.za",
-          password: await hashPassword("Samasi@25"),
+          password: await hashPassword("Samasi@2025"),
         });
         console.log("Admin user created successfully");
       }
