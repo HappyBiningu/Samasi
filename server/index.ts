@@ -1,20 +1,7 @@
-import { config } from 'dotenv';
+import "./env.js"; // Load environment variables first
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import path from 'path';
-
-// Try to load .env file explicitly
-try {
-  const dotenvResult = config({ path: path.resolve(process.cwd(), '.env') });
-  if (dotenvResult.error) {
-    console.log("No .env file found, using environment variables or defaults");
-  } else {
-    console.log("✓ .env file loaded successfully");
-  }
-} catch (error) {
-  console.log("Error loading .env file:", error);
-}
 
 // Debug: Check if environment variables are loaded
 console.log("Environment check:");
