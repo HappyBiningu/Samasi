@@ -245,7 +245,11 @@ export default function MLInsightsPage() {
               <CardContent>
                 {predictions && predictions.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={predictions.slice(0, 10)}>
+                    <BarChart data={predictions.slice(0, 10).map(item => ({
+                      ...item,
+                      delayDays: isNaN(item.delayDays) ? 0 : item.delayDays,
+                      confidence: isNaN(item.confidence) ? 0 : item.confidence * 100
+                    }))}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="invoiceNumber" angle={-45} textAnchor="end" height={80} />
                       <YAxis />
@@ -387,7 +391,13 @@ export default function MLInsightsPage() {
               <CardContent>
                 {riskScores && riskScores.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={riskScores.slice(0, 10)} layout="horizontal">
+                    <BarChart 
+                      data={riskScores.slice(0, 10).map(item => ({
+                        ...item,
+                        score: isNaN(item.score) ? 0 : item.score
+                      }))} 
+                      layout="horizontal"
+                    >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis type="number" domain={[0, 100]} />
                       <YAxis dataKey="clientName" type="category" width={80} />
@@ -482,7 +492,11 @@ export default function MLInsightsPage() {
               <CardContent>
                 {anomalies?.anomalies && anomalies.anomalies.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
-                    <ScatterChart data={anomalies.anomalies.slice(0, 20)}>
+                    <ScatterChart data={anomalies.anomalies.slice(0, 20).map(item => ({
+                      ...item,
+                      score: isNaN(item.score) ? 0 : item.score,
+                      'invoice.total': isNaN(item.invoice.total) ? 0 : item.invoice.total
+                    }))}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="invoice.total" />
                       <YAxis dataKey="score" />
@@ -578,7 +592,10 @@ export default function MLInsightsPage() {
               <CardContent>
                 {segmentation?.segmentSummary && segmentation.segmentSummary.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={segmentation.segmentSummary}>
+                    <BarChart data={segmentation.segmentSummary.map(item => ({
+                      ...item,
+                      avgRevenue: isNaN(item.avgRevenue) ? 0 : item.avgRevenue
+                    }))}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis />
