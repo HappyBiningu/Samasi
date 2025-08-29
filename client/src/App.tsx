@@ -1,4 +1,4 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, useLocation, Link } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,6 +11,9 @@ import InvoicesList from "@/pages/invoices-list";
 import Analytics from "@/pages/analytics";
 import MLInsights from "@/pages/ml-insights";
 import AuthPage from "@/pages/auth-page";
+import Terms from "@/pages/terms";
+import Privacy from "@/pages/privacy";
+import Support from "@/pages/support";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "./lib/protected-route";
 
@@ -24,6 +27,9 @@ function Router() {
       <ProtectedRoute path="/analytics" component={Analytics} />
       <ProtectedRoute path="/ml-insights" component={MLInsights} />
       <Route path="/auth" component={AuthPage} />
+      <ProtectedRoute path="/terms" component={Terms} />
+      <ProtectedRoute path="/privacy" component={Privacy} />
+      <ProtectedRoute path="/support" component={Support} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -44,12 +50,12 @@ function AppContent() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="mb-4 md:mb-0">
-                <p className="text-neutral-500 text-sm">&copy; {new Date().getFullYear()} Invoice Generator. All rights reserved.</p>
+                <p className="text-neutral-500 text-sm">&copy; {new Date().getFullYear()} Samasi Professional Services. All rights reserved.</p>
               </div>
               <div className="flex space-x-6">
-                <a href="#" className="text-neutral-500 hover:text-primary text-sm">Terms</a>
-                <a href="#" className="text-neutral-500 hover:text-primary text-sm">Privacy</a>
-                <a href="#" className="text-neutral-500 hover:text-primary text-sm">Support</a>
+                <Link href="/terms" className="text-neutral-500 hover:text-primary text-sm">Terms</Link>
+                <Link href="/privacy" className="text-neutral-500 hover:text-primary text-sm">Privacy</Link>
+                <Link href="/support" className="text-neutral-500 hover:text-primary text-sm">Support</Link>
               </div>
             </div>
           </div>
