@@ -1,13 +1,27 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import path from 'path';
+
+// Try to load .env file explicitly
+try {
+  const result = config({ path: path.resolve(process.cwd(), '.env') });
+  if (result.error) {
+    console.log("No .env file found, using environment variables or defaults");
+  } else {
+    console.log("✓ .env file loaded successfully");
+  }
+} catch (error) {
+  console.log("Error loading .env file:", error);
+}
 
 // Debug: Check if environment variables are loaded
 console.log("Environment check:");
 console.log("DATABASE_URL:", process.env.DATABASE_URL ? "✓ Set" : "✗ Missing");
 console.log("SESSION_SECRET:", process.env.SESSION_SECRET ? "✓ Set" : "✗ Missing");
 console.log("NODE_ENV:", process.env.NODE_ENV);
+console.log("Current working directory:", process.cwd());
 
 const app = express();
 app.use(express.json());
