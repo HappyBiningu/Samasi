@@ -1,3 +1,5 @@
+<img width="216" height="197" alt="logo" src="https://github.com/user-attachments/assets/1b2b4564-d7d2-49b7-9254-c35513bb2aaa" />
+
 # Samasi Professional Services - Invoice Management System with ML Analytics
 ## Comprehensive Project Document
 
@@ -595,48 +597,47 @@ The Samasi Invoice Management System is a comprehensive full-stack web applicati
 
 #### Initial Login
 1. **Navigate to Application:** Open web browser and go to the application URL
-   - <img width="769" height="625" alt="Screenshot 2025-08-30 at 10 58 53" src="https://github.com/user-attachments/assets/a6f366e9-a853-4d4a-8843-08dc541d5fb2" />
-2. **Login Credentials:** 
+   <img width="769" height="625" alt="Screenshot 2025-08-30 at 10 58 53" src="https://github.com/user-attachments/assets/a6f366e9-a853-4d4a-8843-08dc541d5fb2" />
+3. **Login Credentials:** 
    - Email: `admin@samasi.co.za`
    - Password: `Samasi@25`
-3. **Security Features:** 
+4. **Security Features:** 
    - Session timeout after 30 minutes of inactivity
    - Secure password requirements for any new users
    - Remember login status across browser sessions
 
 #### Navigation Overview
-- 
-**Dashboard:** Central hub with key metrics and quick actions
-- <img width="1385" height="812" alt="Screenshot 2025-08-30 at 10 59 28" src="https://github.com/user-attachments/assets/50c3de42-171e-4f67-b7c5-163c14cadd60" />
-- **Invoices:** Complete invoice management functionality
-<img width="1292" height="804" alt="Screenshot 2025-08-30 at 11 02 24" src="https://github.com/user-attachments/assets/91c03662-610d-4227-b32b-afffdd7c556a" />
-<img width="912" height="754" alt="Screenshot 2025-08-30 at 11 02 58" src="https://github.com/user-attachments/assets/5d945530-e1b7-41f1-bd42-364eb05cd38e" />
 
- 
+- **Dashboard:** Central hub with key metrics and quick actions
+- **Invoices:** Complete invoice management functionality
 - **Analytics:** Business intelligence and reporting
-- <img width="1277" height="810" alt="Screenshot 2025-08-30 at 11 03 18" src="https://github.com/user-attachments/assets/ea4827b8-478e-4008-bfac-122a2cdd9751" />
 - **ML Insights:** Predictive analytics and client risk assessment
-- <img width="1262" height="807" alt="Screenshot 2025-08-30 at 11 03 35" src="https://github.com/user-attachments/assets/054ac937-0562-47dc-9370-868acb43f0af" />
+  
+  <img width="1385" height="812" alt="Screenshot 2025-08-30 at 10 59 28" src="https://github.com/user-attachments/assets/50c3de42-171e-4f67-b7c5-163c14cadd60" />
+  
 
 ### 9.2 Invoice Management Operations
 
 #### Creating New Invoices
--<img width="1290" height="812" alt="Screenshot 2025-08-30 at 10 59 44" src="https://github.com/user-attachments/assets/da00e3e0-6eb5-4544-8ebe-aa860ed19888" />
+
 **Step-by-Step Process:**
-1. Click "New Invoice" from dashboard or navigation menu
-2. **Client Information:**
+1. Click "New Invoice" from the dashboard or navigation menu
+  <img width="1290" height="812" alt="Screenshot 2025-08-30 at 10 59 44" src="https://github.com/user-attachments/assets/da00e3e0-6eb5-4544-8ebe-aa860ed19888" />
+
+3. **Client Information:**
    - Enter client name (auto-suggestions available)
    - Add email address (required for delivery)
    - Include billing address details
-3. **Invoice Details:**
+4. **Invoice Details:**
    - Invoice number (auto-generated or manual entry)
    - Issue date (defaults to current date)
    - Due date (configurable payment terms)
-4. **Line Items:**
+     <img width="912" height="754" alt="Screenshot 2025-08-30 at 11 02 58" src="https://github.com/user-attachments/assets/5d945530-e1b7-41f1-bd42-364eb05cd38e" />
+5. **Line Items:**
    - Click "Add Item" to include services
    - Enter description, quantity, rate
    - VAT calculated automatically (15% standard rate)
-5. **Review and Save:**
+6. **Review and Save:**
    - Verify all calculations and details
    - Save as draft or mark as sent
 
@@ -646,6 +647,8 @@ The Samasi Invoice Management System is a comprehensive full-stack web applicati
 3. **Modify Details:** Update any field as needed
 4. **Save Changes:** Changes are saved automatically
 5. **Status Updates:** Change invoice status (Draft, Sent, Paid, Overdue)
+   
+    <img width="1292" height="804" alt="Screenshot 2025-08-30 at 11 02 24" src="https://github.com/user-attachments/assets/91c03662-610d-4227-b32b-afffdd7c556a" />
 
 #### Invoice Actions
 - **View PDF:** Generate professional PDF for client delivery
@@ -662,6 +665,8 @@ The Samasi Invoice Management System is a comprehensive full-stack web applicati
 - **Invoice Count:** Total number of invoices created
 - **Average Invoice Value:** Mean invoice amount
 - **Payment Rate:** Percentage of invoices paid on time
+  
+  <img width="1277" height="810" alt="Screenshot 2025-08-30 at 11 03 18" src="https://github.com/user-attachments/assets/ea4827b8-478e-4008-bfac-122a2cdd9751" />
 
 #### Detailed Analytics
 1. **Revenue Analysis:**
@@ -685,13 +690,15 @@ The Samasi Invoice Management System is a comprehensive full-stack web applicati
 ### 9.4 Machine Learning Features
 
 #### Payment Predictions
-- **Access:** Navigate to "ML Insights" from main menu
+- **Access:** Navigate to "ML Insights" from the main menu
 - **Functionality:** View payment likelihood for each invoice
 - **Interpretation:** 
   - Green: High probability of timely payment (80%+)
   - Yellow: Moderate risk (50-80%)
   - Red: High risk of late payment (<50%)
 - **Actions:** Use predictions to prioritize collection efforts
+  
+  <img width="1262" height="807" alt="Screenshot 2025-08-30 at 11 03 35" src="https://github.com/user-attachments/assets/054ac937-0562-47dc-9370-868acb43f0af" />
 
 #### Client Risk Scoring
 - **Risk Categories:**
