@@ -595,10 +595,12 @@ The Samasi Invoice Management System is a comprehensive full-stack web applicati
 
 #### Initial Login
 1. **Navigate to Application:** Open web browser and go to the application URL
-2. **Login Credentials:** 
+   
+<img width="769" height="625" alt="Screenshot 2025-08-30 at 10 58 53" src="https://github.com/user-attachments/assets/a6f366e9-a853-4d4a-8843-08dc541d5fb2" />
+3. **Login Credentials:** 
    - Email: `admin@samasi.co.za`
    - Password: `Samasi@25`
-3. **Security Features:** 
+4. **Security Features:** 
    - Session timeout after 30 minutes of inactivity
    - Secure password requirements for any new users
    - Remember login status across browser sessions
