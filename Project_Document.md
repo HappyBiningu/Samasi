@@ -1,4 +1,4 @@
-<img width="216" height="197" alt="logo" src="https://github.com/user-attachments/assets/1b2b4564-d7d2-49b7-9254-c35513bb2aaa" />
+<img width="176" height="157" align="center" alt="logo" src="https://github.com/user-attachments/assets/1b2b4564-d7d2-49b7-9254-c35513bb2aaa" />
 
 # Samasi Professional Services - Invoice Management System with ML Analytics
 ## Comprehensive Project Document
