@@ -595,26 +595,33 @@ The Samasi Invoice Management System is a comprehensive full-stack web applicati
 
 #### Initial Login
 1. **Navigate to Application:** Open web browser and go to the application URL
-   
-<img width="769" height="625" alt="Screenshot 2025-08-30 at 10 58 53" src="https://github.com/user-attachments/assets/a6f366e9-a853-4d4a-8843-08dc541d5fb2" />
-3. **Login Credentials:** 
+   - <img width="769" height="625" alt="Screenshot 2025-08-30 at 10 58 53" src="https://github.com/user-attachments/assets/a6f366e9-a853-4d4a-8843-08dc541d5fb2" />
+2. **Login Credentials:** 
    - Email: `admin@samasi.co.za`
    - Password: `Samasi@25`
-4. **Security Features:** 
+3. **Security Features:** 
    - Session timeout after 30 minutes of inactivity
    - Secure password requirements for any new users
    - Remember login status across browser sessions
 
 #### Navigation Overview
-- **Dashboard:** Central hub with key metrics and quick actions
+- 
+**Dashboard:** Central hub with key metrics and quick actions
+- <img width="1385" height="812" alt="Screenshot 2025-08-30 at 10 59 28" src="https://github.com/user-attachments/assets/50c3de42-171e-4f67-b7c5-163c14cadd60" />
 - **Invoices:** Complete invoice management functionality
+<img width="1292" height="804" alt="Screenshot 2025-08-30 at 11 02 24" src="https://github.com/user-attachments/assets/91c03662-610d-4227-b32b-afffdd7c556a" />
+<img width="912" height="754" alt="Screenshot 2025-08-30 at 11 02 58" src="https://github.com/user-attachments/assets/5d945530-e1b7-41f1-bd42-364eb05cd38e" />
+
+ 
 - **Analytics:** Business intelligence and reporting
+- <img width="1277" height="810" alt="Screenshot 2025-08-30 at 11 03 18" src="https://github.com/user-attachments/assets/ea4827b8-478e-4008-bfac-122a2cdd9751" />
 - **ML Insights:** Predictive analytics and client risk assessment
+- <img width="1262" height="807" alt="Screenshot 2025-08-30 at 11 03 35" src="https://github.com/user-attachments/assets/054ac937-0562-47dc-9370-868acb43f0af" />
 
 ### 9.2 Invoice Management Operations
 
 #### Creating New Invoices
-
+-<img width="1290" height="812" alt="Screenshot 2025-08-30 at 10 59 44" src="https://github.com/user-attachments/assets/da00e3e0-6eb5-4544-8ebe-aa860ed19888" />
 **Step-by-Step Process:**
 1. Click "New Invoice" from dashboard or navigation menu
 2. **Client Information:**
