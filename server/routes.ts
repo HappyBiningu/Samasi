@@ -4,11 +4,7 @@ import { storage } from "./storage";
 import { insertInvoiceSchema, type InsertInvoice } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { PaymentDelayPredictor, ClientRiskScorer, AnomalyDetector, ClientSegmentation } from "./ml-models";
-import { setupAuth } from "./auth";
-
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup authentication
-  setupAuth(app);
   
   // put application routes here
   // prefix all routes with /api

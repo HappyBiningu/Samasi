@@ -1,12 +1,8 @@
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
-import { Button } from "@/components/ui/button";
-import { User, LogOut } from "lucide-react";
 import logoPath from "@assets/logo.png";
 
 const Navbar = () => {
   const [location] = useLocation();
-  const { user, logoutMutation } = useAuth();
 
   return (
     <header className="bg-white shadow">
@@ -56,24 +52,6 @@ const Navbar = () => {
               </li>
             </ul>
           </nav>
-          {user && (
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <User className="h-4 w-4" />
-                <span data-testid="text-user-email">{user.email}</span>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => logoutMutation.mutate()}
-                disabled={logoutMutation.isPending}
-                data-testid="button-logout"
-              >
-                <LogOut className="h-4 w-4 mr-1" />
-                Logout
-              </Button>
-            </div>
-          )}
         </div>
       </div>
     </header>
