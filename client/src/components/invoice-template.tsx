@@ -1,23 +1,47 @@
 import { formatCurrency, formatDate } from "@/lib/utils";
 import logoPath from "@assets/logo.png";
+import { useQuery } from "@tanstack/react-query";
+import { Company } from "@shared/schema";
 
 interface InvoiceTemplateProps {
   invoice: any;
 }
 
 const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
+  // Fetch company data if this is an external invoice
+  const { data: company } = useQuery<Company>({
+    queryKey: [`/api/companies/${invoice.companyId}`],
+    enabled: invoice.invoiceType === "external" && !!invoice.companyId,
+  });
+
+  // Determine which company info to show
+  const isExternal = invoice.invoiceType === "external" && company;
+  const companyInfo = isExternal ? {
+    name: company.name,
+    address: company.address,
+    regNumber: company.registrationNumber,
+    vatNumber: company.vatNumber,
+    logoUrl: company.logoPath ? `/uploads/logos/${company.logoPath.split('/').pop()}` : logoPath
+  } : {
+    name: "Samasi",
+    address: "360 Rivonia Boulevard, Edenburg, 2192",
+    regNumber: "2017/374222/21",
+    vatNumber: "4650278411",
+    logoUrl: logoPath
+  };
+
   return (
     <div id="invoice-template" className="border border-neutral-300 p-8 bg-white font-sans">
       <div className="flex justify-between items-start mb-12">
         <div>
           <h2 className="text-2xl font-bold mb-1">Invoice</h2>
-          <p>360 Rivonia Boulevard, Edenburg, 2192</p>
-          <p>Registration Number: 2017/374222/21</p>
-          <p>VAT No: 4650278411</p>
+          <p>{companyInfo.address}</p>
+          <p>Registration Number: {companyInfo.regNumber}</p>
+          <p>VAT No: {companyInfo.vatNumber}</p>
         </div>
         <div>
           {/* Company logo */}
-          <img src={logoPath} alt="Samasi Logo" className="h-20 w-auto" />
+          <img src={companyInfo.logoUrl} alt={`${companyInfo.name} Logo`} className="h-20 w-auto" />
         </div>
       </div>
       

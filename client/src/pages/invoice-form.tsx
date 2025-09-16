@@ -5,10 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LineItem as LineItemType, Invoice, BankDetails } from "@shared/schema";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LineItem as LineItemType, Invoice, BankDetails, Company } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Trash2, FileOutput, Receipt, FileEdit, FileText, Eye } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, FileOutput, Receipt, FileEdit, FileText, Eye, Building } from "lucide-react";
 import { formatCurrency, calculateInvoiceTotals } from "@/lib/utils";
 import InvoicePreview from "@/components/invoice-preview";
 import LineItem from "@/components/line-item";
@@ -29,6 +30,8 @@ interface InvoiceFormData {
   dueDate?: string;
   reminderCount?: number;
   lastReminderSent?: string;
+  invoiceType: "internal" | "external";
+  companyId?: number;
 }
 
 const InvoiceForm = () => {
@@ -55,12 +58,19 @@ const InvoiceForm = () => {
     status: "unpaid",
     dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], // Default: 30 days from now
     reminderCount: 0,
+    invoiceType: "internal",
+    companyId: undefined,
   });
 
   // Fetch invoice data if editing
   const { data: invoiceData, isLoading } = useQuery<Invoice>({
     queryKey: [isEditing ? `/api/invoices/${params.id}` : ""],
     enabled: isEditing,
+  });
+
+  // Fetch companies for external invoices
+  const { data: companies } = useQuery<Company[]>({
+    queryKey: ["/api/companies"],
   });
 
   // Set form data from fetched invoice
@@ -81,6 +91,8 @@ const InvoiceForm = () => {
         reminderCount: invoiceData.reminderCount || 0,
         lastReminderSent: invoiceData.lastReminderSent ? invoiceData.lastReminderSent.toISOString() : undefined,
         bankDetails: invoiceData.bankDetails || undefined,
+        invoiceType: invoiceData.invoiceType || "internal",
+        companyId: invoiceData.companyId || undefined,
       });
     }
   }, [invoiceData]);
@@ -132,6 +144,21 @@ const InvoiceForm = () => {
         ...prev.bankDetails,
         [name]: value,
       } as BankDetails,
+    }));
+  };
+
+  const handleInvoiceTypeChange = (value: "internal" | "external") => {
+    setFormData((prev) => ({
+      ...prev,
+      invoiceType: value,
+      companyId: value === "internal" ? undefined : prev.companyId,
+    }));
+  };
+
+  const handleCompanyChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      companyId: parseInt(value),
     }));
   };
 
@@ -304,6 +331,37 @@ const InvoiceForm = () => {
               <div>
                 <h3 className="text-lg font-medium mb-4 pb-2 border-b border-neutral-200">Invoice Details</h3>
                 <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="invoiceType" className="text-sm font-medium text-neutral-500 mb-1">Invoice Type</Label>
+                    <Select value={formData.invoiceType} onValueChange={handleInvoiceTypeChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select invoice type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="internal">Internal (Samasi)</SelectItem>
+                        <SelectItem value="external">External Company</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {formData.invoiceType === "external" && (
+                    <div>
+                      <Label htmlFor="companyId" className="text-sm font-medium text-neutral-500 mb-1">Select Company</Label>
+                      <Select value={formData.companyId?.toString() || ""} onValueChange={handleCompanyChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a company" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {companies?.map((company) => (
+                            <SelectItem key={company.id} value={company.id.toString()}>
+                              {company.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  
                   <div>
                     <Label htmlFor="invoiceNumber" className="text-sm font-medium text-neutral-500 mb-1">Invoice Number</Label>
                     <Input

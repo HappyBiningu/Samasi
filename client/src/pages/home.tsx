@@ -3,7 +3,7 @@ import { Invoice } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import { FileText, PieChart, Eye, Receipt, FileOutput } from "lucide-react";
+import { FileText, PieChart, Eye, Receipt, FileOutput, Building } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import logoPath from "@assets/logo.png";
 
@@ -45,7 +45,7 @@ const Home = () => {
             </div>
           </div>
         </Card>
-        
+
         {/* Features card */}
         <Card className="overflow-hidden border-secondary/20">
           <CardContent className="p-6">
@@ -82,7 +82,7 @@ const Home = () => {
           </CardContent>
         </Card>
       </div>
-      
+
       <div>
         <Card className="mb-8 border-primary/20 overflow-hidden">
           <div className="bg-gradient-to-r from-primary/5 to-accent/5 px-6 py-4 border-b border-primary/10">
@@ -146,7 +146,7 @@ const Home = () => {
             )}
           </CardContent>
         </Card>
-        
+
         {/* PDF Export Card */}
         <Card className="overflow-hidden border-secondary/20">
           <div className="bg-gradient-to-r from-secondary/5 to-secondary/10 px-6 py-4 border-b border-secondary/10">
