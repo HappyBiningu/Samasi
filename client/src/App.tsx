@@ -10,6 +10,7 @@ import InvoiceForm from "@/pages/invoice-form";
 import InvoicesList from "@/pages/invoices-list";
 import Analytics from "@/pages/analytics";
 import MLInsights from "@/pages/ml-insights";
+import Companies from "@/pages/companies";
 import Terms from "@/pages/terms";
 import Privacy from "@/pages/privacy";
 import Support from "@/pages/support";
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/new-invoice" component={InvoiceForm} />
       <Route path="/edit-invoice/:id" component={InvoiceForm} />
       <Route path="/invoices" component={InvoicesList} />
+      <Route path="/companies" component={Companies} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/ml-insights" component={MLInsights} />
       <Route path="/terms" component={Terms} />

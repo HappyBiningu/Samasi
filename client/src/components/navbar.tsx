@@ -34,6 +34,14 @@ const Navbar = () => {
               </li>
               <li>
                 <Link 
+                  href="/companies"
+                  className={`${location === "/companies" ? "text-primary border-b-2 border-primary" : "text-neutral-500 hover:text-primary"} font-medium pb-1`}
+                >
+                  Companies
+                </Link>
+              </li>
+              <li>
+                <Link 
                   href="/analytics"
                   className={`${location === "/analytics" ? "text-primary border-b-2 border-primary" : "text-neutral-500 hover:text-primary"} font-medium pb-1`}
                   data-testid="link-analytics"

@@ -1,13 +1,68 @@
 import type { Express, Request, Response } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertInvoiceSchema, type InsertInvoice } from "@shared/schema";
+import { insertInvoiceSchema, insertCompanySchema, type InsertInvoice, type InsertCompany } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { PaymentDelayPredictor, ClientRiskScorer, AnomalyDetector, ClientSegmentation } from "./ml-models";
+import multer from "multer";
+import path from "path";
+import fs from "fs/promises";
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Configure multer for file uploads
+  const storage_multer = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, 'public/uploads/logos');
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+  });
+
+  const upload = multer({
+    storage: storage_multer,
+    limits: {
+      fileSize: 5 * 1024 * 1024 // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = ['.png', '.jpg', '.jpeg'];
+      const fileExt = path.extname(file.originalname).toLowerCase();
+      
+      if (allowedTypes.includes(fileExt)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only PNG, JPG, and JPEG files are allowed'));
+      }
+    }
+  });
+
+  // Serve uploaded files statically
+  app.use('/uploads', express.static('public/uploads'));
   
   // put application routes here
   // prefix all routes with /api
+
+  // File upload endpoint
+  app.post("/api/upload/logo", upload.single('logo'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const filePath = `/uploads/logos/${req.file.filename}`;
+      
+      res.status(200).json({ 
+        message: "File uploaded successfully",
+        filePath: filePath,
+        originalName: req.file.originalname,
+        size: req.file.size
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to upload file" });
+    }
+  });
 
   // Get all invoices
   app.get("/api/invoices", async (req: Request, res: Response) => {
@@ -98,6 +153,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete invoice" });
+    }
+  });
+
+  // Company management endpoints
+  // Get all companies
+  app.get("/api/companies", async (req: Request, res: Response) => {
+    try {
+      const companies = await storage.getAllCompanies();
+      res.json(companies);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch companies" });
+    }
+  });
+
+  // Get a specific company
+  app.get("/api/companies/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid company ID" });
+      }
+
+      const company = await storage.getCompany(id);
+      if (!company) {
+        return res.status(404).json({ message: "Company not found" });
+      }
+      
+      res.json(company);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch company" });
+    }
+  });
+
+  // Create a new company
+  app.post("/api/companies", async (req: Request, res: Response) => {
+    try {
+      const parseResult = insertCompanySchema.safeParse(req.body);
+      
+      if (!parseResult.success) {
+        const validationError = fromZodError(parseResult.error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      const newCompany = await storage.createCompany(parseResult.data);
+      res.status(201).json(newCompany);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create company" });
+    }
+  });
+
+  // Update a company
+  app.put("/api/companies/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid company ID" });
+      }
+
+      // Partial validation is fine for updates
+      const parseResult = insertCompanySchema.partial().safeParse(req.body);
+      
+      if (!parseResult.success) {
+        const validationError = fromZodError(parseResult.error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      const updatedCompany = await storage.updateCompany(id, parseResult.data);
+      if (!updatedCompany) {
+        return res.status(404).json({ message: "Company not found" });
+      }
+      
+      res.json(updatedCompany);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update company" });
+    }
+  });
+
+  // Delete a company
+  app.delete("/api/companies/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid company ID" });
+      }
+
+      // Check if any invoices are using this company
+      const invoices = await storage.getAllInvoices();
+      const hasInvoices = invoices.some(inv => inv.companyId === id);
+      
+      if (hasInvoices) {
+        return res.status(400).json({ 
+          message: "Cannot delete company as it has associated invoices. Please delete or reassign the invoices first." 
+        });
+      }
+
+      const success = await storage.deleteCompany(id);
+      if (!success) {
+        return res.status(404).json({ message: "Company not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete company" });
     }
   });
 

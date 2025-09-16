@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -15,6 +16,25 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+// Companies table for external company information
+export const companies = pgTable("companies", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  address: text("address").notNull(),
+  registrationNumber: text("registration_number").notNull(),
+  vatNumber: text("vat_number").notNull(),
+  logoPath: text("logo_path"), // Optional logo file path
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCompanySchema = createInsertSchema(companies).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCompany = z.infer<typeof insertCompanySchema>;
+export type Company = typeof companies.$inferSelect;
 
 // Line item for invoices
 export const lineItemSchema = z.object({
@@ -53,13 +73,34 @@ export const invoices = pgTable("invoices", {
   lastReminderSent: timestamp("last_reminder_sent"),
   reminderCount: integer("reminder_count").default(0),
   dueDate: text("due_date"),
+  invoiceType: text("invoice_type").notNull().default("internal"), // 'internal' or 'external'
+  companyId: integer("company_id"), // Foreign key to companies table, nullable
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// Invoice type validation
+export const invoiceTypeSchema = z.enum(["internal", "external"]);
+export type InvoiceType = z.infer<typeof invoiceTypeSchema>;
 
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({
   id: true,
   createdAt: true,
+}).extend({
+  invoiceType: invoiceTypeSchema,
+  companyId: z.number().optional(), // Optional for internal invoices
 });
 
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
 export type Invoice = typeof invoices.$inferSelect;
+
+// Relations
+export const companiesRelations = relations(companies, ({ many }) => ({
+  invoices: many(invoices),
+}));
+
+export const invoicesRelations = relations(invoices, ({ one }) => ({
+  company: one(companies, {
+    fields: [invoices.companyId],
+    references: [companies.id],
+  }),
+}));

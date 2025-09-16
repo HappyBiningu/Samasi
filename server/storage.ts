@@ -1,4 +1,4 @@
-import { users, invoices, type User, type InsertUser, type Invoice, type InsertInvoice, type BankDetails } from "@shared/schema";
+import { users, invoices, companies, type User, type InsertUser, type Invoice, type InsertInvoice, type BankDetails, type Company, type InsertCompany } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -16,19 +16,30 @@ export interface IStorage {
   getAllInvoices(): Promise<Invoice[]>;
   updateInvoice(id: number, invoice: Partial<InsertInvoice>): Promise<Invoice | undefined>;
   deleteInvoice(id: number): Promise<boolean>;
+
+  // Company methods
+  createCompany(company: InsertCompany): Promise<Company>;
+  getCompany(id: number): Promise<Company | undefined>;
+  getAllCompanies(): Promise<Company[]>;
+  updateCompany(id: number, company: Partial<InsertCompany>): Promise<Company | undefined>;
+  deleteCompany(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private invoices: Map<number, Invoice>;
+  private companies: Map<number, Company>;
   userCurrentId: number;
   invoiceCurrentId: number;
+  companyCurrentId: number;
 
   constructor() {
     this.users = new Map();
     this.invoices = new Map();
+    this.companies = new Map();
     this.userCurrentId = 1;
     this.invoiceCurrentId = 1;
+    this.companyCurrentId = 1;
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -68,6 +79,8 @@ export class MemStorage implements IStorage {
       lastReminderSent: insertInvoice.lastReminderSent || null,
       reminderCount: insertInvoice.reminderCount || 0,
       dueDate: insertInvoice.dueDate || null,
+      invoiceType: insertInvoice.invoiceType || "internal",
+      companyId: insertInvoice.companyId || null,
       createdAt: now 
     };
     this.invoices.set(id, invoice);
@@ -99,6 +112,48 @@ export class MemStorage implements IStorage {
 
   async deleteInvoice(id: number): Promise<boolean> {
     return this.invoices.delete(id);
+  }
+
+  // Company methods
+  async createCompany(insertCompany: InsertCompany): Promise<Company> {
+    const id = this.companyCurrentId++;
+    const now = new Date();
+    const company: Company = { 
+      id,
+      name: insertCompany.name,
+      address: insertCompany.address,
+      registrationNumber: insertCompany.registrationNumber,
+      vatNumber: insertCompany.vatNumber,
+      logoPath: insertCompany.logoPath || null,
+      createdAt: now
+    };
+    this.companies.set(id, company);
+    return company;
+  }
+
+  async getCompany(id: number): Promise<Company | undefined> {
+    return this.companies.get(id);
+  }
+
+  async getAllCompanies(): Promise<Company[]> {
+    return Array.from(this.companies.values()).sort((a, b) => b.id - a.id);
+  }
+
+  async updateCompany(id: number, companyUpdate: Partial<InsertCompany>): Promise<Company | undefined> {
+    const existingCompany = this.companies.get(id);
+    if (!existingCompany) return undefined;
+
+    const updatedCompany: Company = {
+      ...existingCompany,
+      ...companyUpdate
+    };
+    
+    this.companies.set(id, updatedCompany);
+    return updatedCompany;
+  }
+
+  async deleteCompany(id: number): Promise<boolean> {
+    return this.companies.delete(id);
   }
 }
 
@@ -151,6 +206,38 @@ export class DatabaseStorage implements IStorage {
 
   async deleteInvoice(id: number): Promise<boolean> {
     const result = await db.delete(invoices).where(eq(invoices.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Company methods
+  async createCompany(insertCompany: InsertCompany): Promise<Company> {
+    const [company] = await db
+      .insert(companies)
+      .values(insertCompany)
+      .returning();
+    return company;
+  }
+
+  async getCompany(id: number): Promise<Company | undefined> {
+    const [company] = await db.select().from(companies).where(eq(companies.id, id));
+    return company || undefined;
+  }
+
+  async getAllCompanies(): Promise<Company[]> {
+    return await db.select().from(companies);
+  }
+
+  async updateCompany(id: number, companyUpdate: Partial<InsertCompany>): Promise<Company | undefined> {
+    const [company] = await db
+      .update(companies)
+      .set(companyUpdate)
+      .where(eq(companies.id, id))
+      .returning();
+    return company || undefined;
+  }
+
+  async deleteCompany(id: number): Promise<boolean> {
+    const result = await db.delete(companies).where(eq(companies.id, id));
     return (result.rowCount || 0) > 0;
   }
 }
