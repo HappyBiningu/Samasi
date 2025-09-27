@@ -11,7 +11,7 @@ import fs from "fs/promises";
 import { sendInvoiceEmail, testEmailConfiguration } from "./email";
 import { z } from "zod";
 export async function registerRoutes(app: Express): Promise<Server> {
-  
+
   // Configure multer for file uploads
   const storage_multer = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -31,7 +31,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     fileFilter: (req, file, cb) => {
       const allowedTypes = ['.png', '.jpg', '.jpeg'];
       const fileExt = path.extname(file.originalname).toLowerCase();
-      
+
       if (allowedTypes.includes(fileExt)) {
         cb(null, true);
       } else {
@@ -42,7 +42,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Serve uploaded files statically
   app.use('/uploads', express.static('public/uploads'));
-  
+
   // put application routes here
   // prefix all routes with /api
 
@@ -54,7 +54,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const filePath = `/uploads/logos/${req.file.filename}`;
-      
+
       res.status(200).json({ 
         message: "File uploaded successfully",
         filePath: filePath,
@@ -88,7 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!invoice) {
         return res.status(404).json({ message: "Invoice not found" });
       }
-      
+
       res.json(invoice);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch invoice" });
@@ -99,12 +99,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/invoices", async (req: Request, res: Response) => {
     try {
       const parseResult = insertInvoiceSchema.safeParse(req.body);
-      
+
       if (!parseResult.success) {
         const validationError = fromZodError(parseResult.error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       const newInvoice = await storage.createInvoice(parseResult.data);
       res.status(201).json(newInvoice);
     } catch (error) {
@@ -122,17 +122,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Partial validation is fine for updates
       const parseResult = insertInvoiceSchema.partial().safeParse(req.body);
-      
+
       if (!parseResult.success) {
         const validationError = fromZodError(parseResult.error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       const updatedInvoice = await storage.updateInvoice(id, parseResult.data);
       if (!updatedInvoice) {
         return res.status(404).json({ message: "Invoice not found" });
       }
-      
+
       res.json(updatedInvoice);
     } catch (error) {
       res.status(500).json({ message: "Failed to update invoice" });
@@ -151,7 +151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!success) {
         return res.status(404).json({ message: "Invoice not found" });
       }
-      
+
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete invoice" });
@@ -181,7 +181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!company) {
         return res.status(404).json({ message: "Company not found" });
       }
-      
+
       res.json(company);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch company" });
@@ -192,12 +192,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/companies", async (req: Request, res: Response) => {
     try {
       const parseResult = insertCompanySchema.safeParse(req.body);
-      
+
       if (!parseResult.success) {
         const validationError = fromZodError(parseResult.error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       const newCompany = await storage.createCompany(parseResult.data);
       res.status(201).json(newCompany);
     } catch (error) {
@@ -215,17 +215,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Partial validation is fine for updates
       const parseResult = insertCompanySchema.partial().safeParse(req.body);
-      
+
       if (!parseResult.success) {
         const validationError = fromZodError(parseResult.error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       const updatedCompany = await storage.updateCompany(id, parseResult.data);
       if (!updatedCompany) {
         return res.status(404).json({ message: "Company not found" });
       }
-      
+
       res.json(updatedCompany);
     } catch (error) {
       res.status(500).json({ message: "Failed to update company" });
@@ -243,7 +243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if any invoices are using this company
       const invoices = await storage.getAllInvoices();
       const hasInvoices = invoices.some(inv => inv.companyId === id);
-      
+
       if (hasInvoices) {
         return res.status(400).json({ 
           message: "Cannot delete company as it has associated invoices. Please delete or reassign the invoices first." 
@@ -254,7 +254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!success) {
         return res.status(404).json({ message: "Company not found" });
       }
-      
+
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete company" });
@@ -265,7 +265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/analytics/overview", async (req: Request, res: Response) => {
     try {
       const invoices = await storage.getAllInvoices();
-      
+
       const totalRevenue = invoices.reduce((sum, invoice) => sum + invoice.total, 0);
       const totalInvoices = invoices.length;
       const paidInvoices = invoices.filter(inv => inv.status === 'paid').length;
@@ -274,10 +274,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!inv.dueDate) return false;
         return new Date(inv.dueDate) < new Date() && inv.status !== 'paid';
       }).length;
-      
+
       const averageInvoiceValue = totalInvoices > 0 ? totalRevenue / totalInvoices : 0;
       const paymentRate = totalInvoices > 0 ? (paidInvoices / totalInvoices) * 100 : 0;
-      
+
       res.json({
         totalRevenue,
         totalInvoices,
@@ -295,29 +295,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/analytics/revenue-by-month", async (req: Request, res: Response) => {
     try {
       const invoices = await storage.getAllInvoices();
-      
+
       const revenueByMonth = invoices.reduce((acc: Record<string, number>, invoice) => {
         const date = new Date(invoice.invoiceDate);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        
+
         if (!acc[monthKey]) {
           acc[monthKey] = 0;
         }
-        
+
         if (invoice.status === 'paid') {
           acc[monthKey] += invoice.total;
         }
-        
+
         return acc;
       }, {});
-      
+
       const chartData = Object.entries(revenueByMonth)
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([month, revenue]) => ({
           month,
           revenue
         }));
-      
+
       res.json(chartData);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch revenue by month" });
@@ -327,19 +327,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/analytics/status-breakdown", async (req: Request, res: Response) => {
     try {
       const invoices = await storage.getAllInvoices();
-      
+
       const statusCounts = invoices.reduce((acc: Record<string, number>, invoice) => {
         const status = invoice.status;
         acc[status] = (acc[status] || 0) + 1;
         return acc;
       }, {});
-      
+
       const chartData = Object.entries(statusCounts).map(([status, count]) => ({
         status: status.charAt(0).toUpperCase() + status.slice(1),
         count,
         value: count
       }));
-      
+
       res.json(chartData);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch status breakdown" });
@@ -349,7 +349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/analytics/invoice-timeline", async (req: Request, res: Response) => {
     try {
       const invoices = await storage.getAllInvoices();
-      
+
       const timelineData = invoices.map(invoice => ({
         date: invoice.invoiceDate,
         amount: invoice.total,
@@ -357,7 +357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         clientName: invoice.clientName,
         invoiceNumber: invoice.invoiceNumber
       })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      
+
       res.json(timelineData);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch invoice timeline" });
@@ -367,7 +367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/analytics/client-performance", async (req: Request, res: Response) => {
     try {
       const invoices = await storage.getAllInvoices();
-      
+
       const clientStats = invoices.reduce((acc: Record<string, any>, invoice) => {
         const client = invoice.clientName;
         if (!acc[client]) {
@@ -379,24 +379,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             paidCount: 0
           };
         }
-        
+
         acc[client].totalAmount += invoice.total;
         acc[client].invoiceCount += 1;
-        
+
         if (invoice.status === 'paid') {
           acc[client].paidAmount += invoice.total;
           acc[client].paidCount += 1;
         }
-        
+
         return acc;
       }, {});
-      
+
       const chartData = Object.values(clientStats).map((client: any) => ({
         ...client,
         averageInvoice: client.invoiceCount > 0 ? client.totalAmount / client.invoiceCount : 0,
         paymentRate: client.invoiceCount > 0 ? (client.paidCount / client.invoiceCount) * 100 : 0
       }));
-      
+
       res.json(chartData);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch client performance" });
@@ -406,7 +406,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/analytics/amount-distribution", async (req: Request, res: Response) => {
     try {
       const invoices = await storage.getAllInvoices();
-      
+
       // Create amount ranges for distribution
       const ranges = [
         { min: 0, max: 1000, label: 'R0 - R1,000' },
@@ -415,19 +415,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { min: 10000, max: 50000, label: 'R10,000 - R50,000' },
         { min: 50000, max: Infinity, label: 'R50,000+' }
       ];
-      
+
       const distribution = ranges.map(range => {
         const count = invoices.filter(invoice => 
           invoice.total >= range.min && invoice.total < range.max
         ).length;
-        
+
         return {
           range: range.label,
           count,
           value: count
         };
       }).filter(item => item.count > 0);
-      
+
       res.json(distribution);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch amount distribution" });
@@ -438,7 +438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/export/invoices.csv", async (req: Request, res: Response) => {
     try {
       const invoices = await storage.getAllInvoices();
-      
+
       // Create CSV headers
       const headers = [
         'Invoice Number',
@@ -462,7 +462,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'IBAN',
         'Swift Code'
       ];
-      
+
       // Convert invoices to CSV rows
       const csvRows = invoices.map(invoice => [
         invoice.invoiceNumber,
@@ -486,12 +486,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         invoice.bankDetails?.iban || '',
         invoice.bankDetails?.swiftCode || ''
       ]);
-      
+
       // Combine headers and rows
       const csvContent = [headers, ...csvRows]
         .map(row => row.map(field => `"${field}"`).join(','))
         .join('\n');
-      
+
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename="invoices.csv"');
       res.send(csvContent);
@@ -503,7 +503,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/export/analytics.csv", async (req: Request, res: Response) => {
     try {
       const invoices = await storage.getAllInvoices();
-      
+
       // Create analytics summary CSV
       const analytics = {
         totalRevenue: invoices.reduce((sum, inv) => sum + inv.total, 0),
@@ -513,7 +513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         averageInvoiceValue: invoices.length > 0 ? invoices.reduce((sum, inv) => sum + inv.total, 0) / invoices.length : 0,
         paymentRate: invoices.length > 0 ? (invoices.filter(inv => inv.status === 'paid').length / invoices.length) * 100 : 0
       };
-      
+
       const headers = ['Metric', 'Value'];
       const csvRows = [
         ['Total Revenue (R)', analytics.totalRevenue],
@@ -523,11 +523,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ['Average Invoice Value (R)', analytics.averageInvoiceValue.toFixed(2)],
         ['Payment Rate (%)', analytics.paymentRate.toFixed(1)]
       ];
-      
+
       const csvContent = [headers, ...csvRows]
         .map(row => row.map(field => `"${field}"`).join(','))
         .join('\n');
-      
+
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename="analytics_summary.csv"');
       res.send(csvContent);
@@ -539,7 +539,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/export/clients.csv", async (req: Request, res: Response) => {
     try {
       const invoices = await storage.getAllInvoices();
-      
+
       // Group by clients
       const clientStats = invoices.reduce((acc: Record<string, any>, invoice) => {
         const client = invoice.clientName;
@@ -555,23 +555,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
             lastInvoiceDate: invoice.invoiceDate
           };
         }
-        
+
         acc[client].totalAmount += invoice.total;
         acc[client].invoiceCount += 1;
-        
+
         if (invoice.status === 'paid') {
           acc[client].paidAmount += invoice.total;
           acc[client].paidCount += 1;
         }
-        
+
         // Update last invoice date if newer
         if (new Date(invoice.invoiceDate) > new Date(acc[client].lastInvoiceDate)) {
           acc[client].lastInvoiceDate = invoice.invoiceDate;
         }
-        
+
         return acc;
       }, {});
-      
+
       const headers = [
         'Client Name',
         'Registration Number',
@@ -584,7 +584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Average Invoice (R)',
         'Last Invoice Date'
       ];
-      
+
       const csvRows = Object.values(clientStats).map((client: any) => [
         client.clientName,
         client.clientRegNumber,
@@ -597,11 +597,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         client.invoiceCount > 0 ? (client.totalAmount / client.invoiceCount).toFixed(2) : '0',
         client.lastInvoiceDate
       ]);
-      
+
       const csvContent = [headers, ...csvRows]
         .map(row => row.map(field => `"${field}"`).join(','))
         .join('\n');
-      
+
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename="clients_summary.csv"');
       res.send(csvContent);
@@ -614,14 +614,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   async function generateInvoicePDF(invoice: any, companyName: string): Promise<Buffer> {
     const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
-    
+
     // Set font
     doc.setFont("helvetica");
-    
+
     // Determine company info based on invoice type
     const isExternal = invoice.invoiceType === "external" && invoice.companyId;
     let displayCompanyName, displayAddress, displayRegNumber, displayVatNumber;
-    
+
     if (isExternal) {
       displayCompanyName = companyName;
       displayAddress = "Company Address"; // Will be populated from company data
@@ -634,12 +634,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       displayRegNumber = "2017/374222/21";
       displayVatNumber = "4650278411";
     }
-    
+
     // Header with company branding
     doc.setFontSize(24);
     doc.setTextColor(37, 99, 235); // Blue color
     doc.text("INVOICE", 105, 25, { align: "center" });
-    
+
     // Company info section
     doc.setTextColor(0, 0, 0); // Reset to black
     doc.setFontSize(16);
@@ -648,7 +648,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     doc.text(displayAddress, 20, 55);
     doc.text(`Registration Number: ${displayRegNumber}`, 20, 63);
     doc.text(`VAT No: ${displayVatNumber}`, 20, 71);
-    
+
     // Invoice details box
     doc.setFillColor(248, 250, 252); // Light gray background
     doc.rect(120, 40, 70, 35, 'F');
@@ -657,7 +657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     doc.text(`Invoice Date: ${invoice.invoiceDate}`, 125, 58);
     doc.text(`Due Date: ${invoice.dueDate || 'N/A'}`, 125, 66);
     doc.text(`Status: ${invoice.status.toUpperCase()}`, 125, 74);
-    
+
     // Client details section
     doc.setFontSize(12);
     doc.setTextColor(37, 99, 235);
@@ -667,7 +667,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     doc.text(invoice.clientName, 20, 105);
     doc.text(`Registration Number: ${invoice.clientRegNumber}`, 20, 113);
     doc.text(`VAT No: ${invoice.clientVatNumber}`, 20, 121);
-    
+
     // Line items table with better formatting
     let yPosition = 140;
     doc.setFillColor(37, 99, 235);
@@ -676,11 +676,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     doc.setFontSize(10);
     doc.text("DESCRIPTION", 25, yPosition);
     doc.text("AMOUNT", 165, yPosition);
-    
+
     // Reset colors for table content
     doc.setTextColor(0, 0, 0);
     yPosition += 10;
-    
+
     // Add line items with alternating row colors
     invoice.lineItems.forEach((item: any, index: number) => {
       if (index % 2 === 0) {
@@ -691,18 +691,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       doc.text(`R${(item.amount / 100).toFixed(2)}`, 165, yPosition);
       yPosition += 8;
     });
-    
+
     // Totals section with better styling
     yPosition += 10;
     doc.setLineWidth(0.5);
     doc.line(120, yPosition, 190, yPosition);
     yPosition += 8;
-    
+
     doc.text(`Subtotal: R${(invoice.subtotal / 100).toFixed(2)}`, 125, yPosition);
     yPosition += 8;
     doc.text(`VAT (15.0%): R${(invoice.vat / 100).toFixed(2)}`, 125, yPosition);
     yPosition += 8;
-    
+
     // Total with emphasis
     doc.setLineWidth(1);
     doc.line(120, yPosition, 190, yPosition);
@@ -711,7 +711,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     doc.setTextColor(37, 99, 235);
     doc.text(`TOTAL: R${(invoice.total / 100).toFixed(2)}`, 125, yPosition);
     doc.setTextColor(0, 0, 0);
-    
+
     // Bank details section
     if (invoice.bankDetails) {
       yPosition += 20;
@@ -745,19 +745,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPosition += 8;
       doc.text("Branch Code: 250655", 20, yPosition);
     }
-    
+
     // Thank you section
     yPosition += 20;
     doc.setFontSize(12);
     doc.setTextColor(37, 99, 235);
     doc.text("Thank you for your business!", 105, yPosition, { align: "center" });
-    
+
     // Footer
     yPosition += 15;
     doc.setFontSize(8);
     doc.setTextColor(128, 128, 128);
     doc.text("Powered by Samasi", 190, yPosition, { align: "right" });
-    
+
     // Convert to buffer
     const pdfArrayBuffer = doc.output('arraybuffer');
     return Buffer.from(pdfArrayBuffer);
@@ -783,7 +783,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("📧 Email request received for invoice:", req.params.id);
       console.log("📧 Request body:", req.body);
-      
+
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid invoice ID" });
@@ -845,14 +845,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("📧 Email sent result:", emailSent);
 
       if (emailSent) {
+        console.log("📧 Email sent successfully!");
         res.json({ 
-          success: true, 
-          message: `Invoice #${invoice.invoiceNumber} sent successfully to ${recipientEmail}` 
+          success: true,
+          message: `Invoice #${invoice.invoiceNumber} has been sent to ${recipientEmail}`,
+          invoiceNumber: invoice.invoiceNumber,
+          recipientEmail 
         });
       } else {
+        console.error("📧 Email failed to send");
         res.status(500).json({ 
-          success: false, 
-          message: "Failed to send email. Please check email configuration and try again." 
+          success: false,
+          message: "Failed to send email. Please check your email configuration." 
         });
       }
     } catch (error) {
@@ -871,10 +875,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/ml/payment-predictions", async (req: Request, res: Response) => {
     try {
       const invoices = await storage.getAllInvoices();
-      
+
       // Train the model if not already trained
       paymentPredictor.train(invoices);
-      
+
       const predictions = invoices
         .filter(inv => inv.status === 'unpaid')
         .map(invoice => ({
@@ -894,10 +898,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/ml/client-risk-scores", async (req: Request, res: Response) => {
     try {
       const invoices = await storage.getAllInvoices();
-      
+
       // Get unique clients
       const clients = Array.from(new Set(invoices.map(inv => inv.clientName)));
-      
+
       const riskScores = clients.map(clientName => ({
         clientName,
         ...riskScorer.calculateRiskScore(clientName, invoices)
@@ -932,21 +936,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ml/predict-single", async (req: Request, res: Response) => {
     try {
       const { invoiceId } = req.body;
-      
+
       if (!invoiceId) {
         return res.status(400).json({ message: "Invoice ID required" });
       }
 
       const invoices = await storage.getAllInvoices();
       const invoice = await storage.getInvoice(invoiceId);
-      
+
       if (!invoice) {
         return res.status(404).json({ message: "Invoice not found" });
       }
 
       // Train the model
       paymentPredictor.train(invoices);
-      
+
       const prediction = paymentPredictor.predict(invoice, invoices);
       const riskScore = riskScorer.calculateRiskScore(invoice.clientName, invoices);
 
@@ -968,21 +972,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/ml/insights-summary", async (req: Request, res: Response) => {
     try {
       const invoices = await storage.getAllInvoices();
-      
+
       // Train payment predictor
       const trainingResult = paymentPredictor.train(invoices);
-      
+
       // Get all insights
       const unpaidInvoices = invoices.filter(inv => inv.status === 'unpaid');
       const predictions = unpaidInvoices.map(invoice => 
         paymentPredictor.predict(invoice, invoices)
       );
-      
+
       const clients = Array.from(new Set(invoices.map(inv => inv.clientName)));
       const riskScores = clients.map(clientName => 
         riskScorer.calculateRiskScore(clientName, invoices)
       );
-      
+
       const anomalies = anomalyDetector.detectAnomalies(invoices);
       const segmentation = clientSegmentation.segmentClients(invoices);
 
@@ -990,7 +994,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const avgDelayDays = predictions.length > 0 
         ? predictions.reduce((sum, p) => sum + p.delayDays, 0) / predictions.length 
         : 0;
-      
+
       const highRiskClients = riskScores.filter(r => r.category === 'high').length;
       const atRiskRevenue = unpaidInvoices
         .filter(inv => {
