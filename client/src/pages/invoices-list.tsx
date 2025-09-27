@@ -45,7 +45,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Send } from "lucide-react";
 
 const InvoicesList = () => {
   const [, navigate] = useLocation();
@@ -53,6 +63,9 @@ const InvoicesList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [emailInvoice, setEmailInvoice] = useState<Invoice | null>(null);
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [isEmailSending, setIsEmailSending] = useState(false);
 
   const { data: invoices, isLoading } = useQuery<Invoice[]>({
     queryKey: ["/api/invoices"],
@@ -112,31 +125,52 @@ const InvoicesList = () => {
     }
   };
   
-  const sendInvoiceReminder = async (invoice: Invoice) => {
-    try {
-      // In a real implementation, this would send an email
-      // For now, we'll just update the lastReminderSent timestamp and increment reminderCount
-      const now = new Date().toISOString();
-      const reminderCount = (invoice.reminderCount || 0) + 1;
-      
-      await apiRequest("PUT", `/api/invoices/${invoice.id}`, { 
-        lastReminderSent: now,
-        reminderCount 
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
-      
+  const sendInvoiceReminder = (invoice: Invoice) => {
+    // Open the email dialog for sending payment reminder
+    setEmailInvoice(invoice);
+    setRecipientEmail(""); // Reset email field
+  };
+
+  const handleEmailInvoice = (invoice: Invoice) => {
+    setEmailInvoice(invoice);
+    setRecipientEmail(""); // Reset email field
+  };
+
+  const sendInvoiceEmail = async () => {
+    if (!emailInvoice || !recipientEmail) {
       toast({
-        title: "Reminder Sent",
-        description: `Payment reminder sent to ${invoice.clientName}`,
-      });
-    } catch (error) {
-      console.error("Error sending reminder:", error);
-      toast({
-        title: "Reminder Failed",
-        description: "Failed to send payment reminder",
+        title: "Missing Information",
+        description: "Please enter a recipient email address",
         variant: "destructive",
       });
+      return;
+    }
+
+    setIsEmailSending(true);
+    try {
+      const response: any = await apiRequest("POST", `/api/invoices/${emailInvoice.id}/send-email`, {
+        recipientEmail: recipientEmail.trim(),
+      });
+
+      if (response.success) {
+        toast({
+          title: "Email Sent",
+          description: response.message,
+        });
+        setEmailInvoice(null);
+        setRecipientEmail("");
+      } else {
+        throw new Error(response.message || "Failed to send email");
+      }
+    } catch (error: any) {
+      console.error("Error sending email:", error);
+      toast({
+        title: "Email Failed",
+        description: error.message || "Failed to send invoice email",
+        variant: "destructive",
+      });
+    } finally {
+      setIsEmailSending(false);
     }
   };
 
@@ -412,6 +446,16 @@ const InvoicesList = () => {
                         >
                           <FileOutput className="h-4 w-4 text-primary" />
                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEmailInvoice(invoice)}
+                          title="Send via Email"
+                          className="hover:bg-blue-100"
+                          data-testid={`button-email-${invoice.id}`}
+                        >
+                          <Send className="h-4 w-4 text-blue-600" />
+                        </Button>
                         {/* Status actions */}
                         {invoice.status !== "paid" && (
                           <Button
@@ -556,6 +600,78 @@ const InvoicesList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Email Invoice Dialog */}
+      <Dialog open={emailInvoice !== null} onOpenChange={() => setEmailInvoice(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Send className="mr-2 h-5 w-5 text-blue-600" />
+              Send Invoice via Email
+            </DialogTitle>
+            <DialogDescription>
+              {emailInvoice && `Send Invoice #${emailInvoice.invoiceNumber} to a client via email. The invoice will be attached as a PDF.`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="client@example.com"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                className="col-span-3"
+                data-testid="input-recipient-email"
+              />
+            </div>
+            {emailInvoice && (
+              <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
+                <h4 className="font-medium text-blue-900 mb-1">Invoice Details</h4>
+                <p className="text-sm text-blue-700">
+                  <strong>Invoice:</strong> #{emailInvoice.invoiceNumber}
+                </p>
+                <p className="text-sm text-blue-700">
+                  <strong>Client:</strong> {emailInvoice.clientName}
+                </p>
+                <p className="text-sm text-blue-700">
+                  <strong>Amount:</strong> {formatCurrency(emailInvoice.total)}
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setEmailInvoice(null)}
+              data-testid="button-cancel-email"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={sendInvoiceEmail}
+              disabled={isEmailSending || !recipientEmail.trim()}
+              className="bg-blue-600 hover:bg-blue-700"
+              data-testid="button-send-email"
+            >
+              {isEmailSending ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Send Email
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
