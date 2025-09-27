@@ -618,63 +618,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Set font
     doc.setFont("helvetica");
     
-    // Header
-    doc.setFontSize(20);
-    doc.text("INVOICE", 105, 30, { align: "center" });
+    // Determine company info based on invoice type
+    const isExternal = invoice.invoiceType === "external" && invoice.companyId;
+    let displayCompanyName, displayAddress, displayRegNumber, displayVatNumber;
     
-    // Company info
+    if (isExternal) {
+      displayCompanyName = companyName;
+      displayAddress = "Company Address"; // Will be populated from company data
+      displayRegNumber = "Company Reg"; // Will be populated from company data  
+      displayVatNumber = "Company VAT"; // Will be populated from company data
+    } else {
+      // Use Samasi branding for internal invoices
+      displayCompanyName = "Samasi";
+      displayAddress = "360 Rivonia Boulevard, Edenburg, 2192";
+      displayRegNumber = "2017/374222/21";
+      displayVatNumber = "4650278411";
+    }
+    
+    // Header with company branding
+    doc.setFontSize(24);
+    doc.setTextColor(37, 99, 235); // Blue color
+    doc.text("INVOICE", 105, 25, { align: "center" });
+    
+    // Company info section
+    doc.setTextColor(0, 0, 0); // Reset to black
+    doc.setFontSize(16);
+    doc.text(displayCompanyName, 20, 45);
+    doc.setFontSize(10);
+    doc.text(displayAddress, 20, 55);
+    doc.text(`Registration Number: ${displayRegNumber}`, 20, 63);
+    doc.text(`VAT No: ${displayVatNumber}`, 20, 71);
+    
+    // Invoice details box
+    doc.setFillColor(248, 250, 252); // Light gray background
+    doc.rect(120, 40, 70, 35, 'F');
+    doc.setFontSize(10);
+    doc.text(`Invoice #: ${invoice.invoiceNumber}`, 125, 50);
+    doc.text(`Invoice Date: ${invoice.invoiceDate}`, 125, 58);
+    doc.text(`Due Date: ${invoice.dueDate || 'N/A'}`, 125, 66);
+    doc.text(`Status: ${invoice.status.toUpperCase()}`, 125, 74);
+    
+    // Client details section
     doc.setFontSize(12);
-    doc.text(companyName, 20, 50);
-    
-    // Invoice details
+    doc.setTextColor(37, 99, 235);
+    doc.text("BILL TO", 20, 95);
+    doc.setTextColor(0, 0, 0);
     doc.setFontSize(10);
-    doc.text(`Invoice Number: ${invoice.invoiceNumber}`, 20, 70);
-    doc.text(`Invoice Date: ${invoice.invoiceDate}`, 20, 80);
-    doc.text(`Due Date: ${invoice.dueDate || 'N/A'}`, 20, 90);
-    doc.text(`Status: ${invoice.status.toUpperCase()}`, 120, 70);
+    doc.text(invoice.clientName, 20, 105);
+    doc.text(`Registration Number: ${invoice.clientRegNumber}`, 20, 113);
+    doc.text(`VAT No: ${invoice.clientVatNumber}`, 20, 121);
     
-    // Client details
-    doc.setFontSize(12);
-    doc.text("Bill To:", 20, 110);
+    // Line items table with better formatting
+    let yPosition = 140;
+    doc.setFillColor(37, 99, 235);
+    doc.rect(20, yPosition - 5, 170, 10, 'F');
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(10);
-    doc.text(invoice.clientName, 20, 120);
-    doc.text(`Reg Number: ${invoice.clientRegNumber}`, 20, 130);
-    doc.text(`VAT Number: ${invoice.clientVatNumber}`, 20, 140);
+    doc.text("DESCRIPTION", 25, yPosition);
+    doc.text("AMOUNT", 165, yPosition);
     
-    // Line items table
-    let yPosition = 160;
-    doc.setFontSize(10);
-    doc.text("Description", 20, yPosition);
-    doc.text("Amount", 150, yPosition);
-    
-    // Draw line under headers
-    doc.line(20, yPosition + 2, 190, yPosition + 2);
+    // Reset colors for table content
+    doc.setTextColor(0, 0, 0);
     yPosition += 10;
     
-    // Add line items
-    invoice.lineItems.forEach((item: any) => {
-      doc.text(item.description, 20, yPosition);
-      doc.text(`R${(item.amount / 100).toFixed(2)}`, 150, yPosition);
-      yPosition += 10;
+    // Add line items with alternating row colors
+    invoice.lineItems.forEach((item: any, index: number) => {
+      if (index % 2 === 0) {
+        doc.setFillColor(248, 250, 252);
+        doc.rect(20, yPosition - 3, 170, 8, 'F');
+      }
+      doc.text(item.description, 25, yPosition);
+      doc.text(`R${(item.amount / 100).toFixed(2)}`, 165, yPosition);
+      yPosition += 8;
     });
     
-    // Totals
+    // Totals section with better styling
     yPosition += 10;
+    doc.setLineWidth(0.5);
+    doc.line(120, yPosition, 190, yPosition);
+    yPosition += 8;
+    
+    doc.text(`Subtotal: R${(invoice.subtotal / 100).toFixed(2)}`, 125, yPosition);
+    yPosition += 8;
+    doc.text(`VAT (15.0%): R${(invoice.vat / 100).toFixed(2)}`, 125, yPosition);
+    yPosition += 8;
+    
+    // Total with emphasis
+    doc.setLineWidth(1);
     doc.line(120, yPosition, 190, yPosition);
     yPosition += 10;
-    
-    doc.text(`Subtotal: R${(invoice.subtotal / 100).toFixed(2)}`, 120, yPosition);
-    yPosition += 10;
-    doc.text(`VAT: R${(invoice.vat / 100).toFixed(2)}`, 120, yPosition);
-    yPosition += 10;
     doc.setFontSize(12);
-    doc.text(`Total: R${(invoice.total / 100).toFixed(2)}`, 120, yPosition);
+    doc.setTextColor(37, 99, 235);
+    doc.text(`TOTAL: R${(invoice.total / 100).toFixed(2)}`, 125, yPosition);
+    doc.setTextColor(0, 0, 0);
     
-    // Bank details if available
+    // Bank details section
     if (invoice.bankDetails) {
       yPosition += 20;
       doc.setFontSize(12);
-      doc.text("Banking Details:", 20, yPosition);
+      doc.setTextColor(37, 99, 235);
+      doc.text("Banking Details", 20, yPosition);
+      doc.setTextColor(0, 0, 0);
       doc.setFontSize(10);
       yPosition += 10;
       doc.text(`Bank: ${invoice.bankDetails.bankName}`, 20, yPosition);
@@ -686,7 +730,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         yPosition += 8;
         doc.text(`Sort Code: ${invoice.bankDetails.sortCode}`, 20, yPosition);
       }
+    } else {
+      // Default Samasi banking details for internal invoices
+      yPosition += 20;
+      doc.setFontSize(12);
+      doc.setTextColor(37, 99, 235);
+      doc.text("Banking Details", 20, yPosition);
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(10);
+      yPosition += 10;
+      doc.text("Bank: First National Bank (FNB)", 20, yPosition);
+      yPosition += 8;
+      doc.text("Account Number: 62417570993", 20, yPosition);
+      yPosition += 8;
+      doc.text("Branch Code: 250655", 20, yPosition);
     }
+    
+    // Thank you section
+    yPosition += 20;
+    doc.setFontSize(12);
+    doc.setTextColor(37, 99, 235);
+    doc.text("Thank you for your business!", 105, yPosition, { align: "center" });
+    
+    // Footer
+    yPosition += 15;
+    doc.setFontSize(8);
+    doc.setTextColor(128, 128, 128);
+    doc.text("Powered by Samasi", 190, yPosition, { align: "right" });
     
     // Convert to buffer
     const pdfArrayBuffer = doc.output('arraybuffer');
@@ -744,8 +814,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("📧 Found invoice:", invoice.invoiceNumber);
 
-      // Get company details if it's an external invoice
-      let companyName = "Your Company";
+      // Get company details if it's an external invoice, otherwise use Samasi
+      let companyName = "Samasi";
       if (invoice.invoiceType === "external" && invoice.companyId) {
         const company = await storage.getCompany(invoice.companyId);
         if (company) {

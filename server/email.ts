@@ -109,24 +109,46 @@ export async function sendInvoiceEmail(
     // Create HTML version with professional formatting
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
-        <!-- Header -->
-        <div style="background: linear-gradient(to right, #2563eb, #1d4ed8); padding: 20px; text-align: center;">
-          <h1 style="color: white; margin: 0; font-size: 24px;">Invoice</h1>
-          <p style="color: white; margin: 5px 0 0 0; font-size: 14px;">Professional Invoice Management</p>
+        <!-- Header with Samasi branding -->
+        <div style="background: linear-gradient(to right, #2563eb, #1d4ed8); padding: 20px; text-align: center; position: relative;">
+          <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+            <img src="https://github.com/user-attachments/assets/logo.png" alt="Samasi Logo" style="height: 40px; margin-right: 10px;" />
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">Samasi</h1>
+          </div>
+          <h2 style="color: white; margin: 0; font-size: 20px; font-weight: normal;">Invoice #${invoiceNumber}</h2>
+          <p style="color: rgba(255,255,255,0.9); margin: 5px 0 0 0; font-size: 14px;">Professional Invoice Management System</p>
         </div>
         
         <!-- Main content area -->
         <div style="padding: 30px; background-color: #ffffff;">
-          <h2 style="color: #1f2937; margin-top: 0;">Invoice #${invoiceNumber}</h2>
-          <p style="color: #333; line-height: 1.5;">Dear ${clientName},</p>
-          <p style="color: #333; line-height: 1.5;">Please find attached your invoice #${invoiceNumber} from ${companyName}.</p>
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div style="display: inline-block; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; padding: 15px;">
+              <h3 style="color: #2563eb; margin: 0; font-size: 18px;">📧 New Invoice Received</h3>
+            </div>
+          </div>
+          <p style="color: #333; line-height: 1.5; font-size: 16px;">Dear ${clientName},</p>
+          <p style="color: #333; line-height: 1.5;">We hope this email finds you well. Please find attached your invoice from <strong style="color: #2563eb;">Samasi</strong>, your trusted invoice management partner.</p>
           
-          <div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 20px; margin: 20px 0;">
-            <h3 style="color: #1f2937; margin-top: 0;">Invoice Details:</h3>
-            <p style="margin: 8px 0; color: #333;"><strong>Invoice Number:</strong> ${invoiceNumber}</p>
-            <p style="margin: 8px 0; color: #333;"><strong>Amount:</strong> ${formattedAmount}</p>
-            <p style="margin: 8px 0; color: #333;"><strong>Date:</strong> ${currentDate}</p>
-            <p style="margin: 8px 0; color: #333;"><strong>From:</strong> ${companyName}</p>
+          <div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border: 2px solid #cbd5e1; border-radius: 10px; padding: 25px; margin: 25px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="color: #1e293b; margin-top: 0; font-size: 18px; border-bottom: 2px solid #2563eb; padding-bottom: 8px; display: inline-block;">📋 Invoice Details</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+              <div>
+                <p style="margin: 8px 0; color: #475569; font-size: 14px;"><strong style="color: #1e293b;">Invoice Number:</strong></p>
+                <p style="margin: 0; color: #2563eb; font-size: 16px; font-weight: bold;">${invoiceNumber}</p>
+              </div>
+              <div>
+                <p style="margin: 8px 0; color: #475569; font-size: 14px;"><strong style="color: #1e293b;">Amount:</strong></p>
+                <p style="margin: 0; color: #059669; font-size: 18px; font-weight: bold;">${formattedAmount}</p>
+              </div>
+              <div>
+                <p style="margin: 8px 0; color: #475569; font-size: 14px;"><strong style="color: #1e293b;">Date:</strong></p>
+                <p style="margin: 0; color: #374151; font-size: 16px;">${currentDate}</p>
+              </div>
+              <div>
+                <p style="margin: 8px 0; color: #475569; font-size: 14px;"><strong style="color: #1e293b;">From:</strong></p>
+                <p style="margin: 0; color: #2563eb; font-size: 16px; font-weight: bold;">Samasi</p>
+              </div>
+            </div>
           </div>
           
           <p style="color: #333; line-height: 1.5;">The invoice is attached as a PDF document. Please review the details and process payment according to the terms specified.</p>
@@ -146,33 +168,48 @@ export async function sendInvoiceEmail(
         </div>
         
         <!-- Footer area -->
-        <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #e0e0e0;">
-          <p style="color: #666; font-size: 12px; margin: 0;">This is an automated invoice email.</p>
-          <p style="color: #666; font-size: 12px; margin: 8px 0 0 0;">© ${new Date().getFullYear()} ${companyName}. All rights reserved.</p>
+        <div style="background: linear-gradient(to right, #f8fafc, #e2e8f0); padding: 25px; text-align: center; border-top: 1px solid #cbd5e1;">
+          <div style="margin-bottom: 15px;">
+            <img src="https://github.com/user-attachments/assets/logo.png" alt="Samasi Logo" style="height: 30px;" />
+          </div>
+          <p style="color: #64748b; font-size: 13px; margin: 0; line-height: 1.4;">This is an automated invoice email from <strong style="color: #2563eb;">Samasi</strong></p>
+          <p style="color: #64748b; font-size: 13px; margin: 8px 0 0 0;">Professional Invoice Management • Trusted by Businesses</p>
+          <p style="color: #64748b; font-size: 12px; margin: 15px 0 0 0;">© ${new Date().getFullYear()} Samasi. All rights reserved.</p>
+          <div style="margin-top: 10px;">
+            <a href="#" style="color: #2563eb; text-decoration: none; font-size: 12px; margin: 0 10px;">Privacy Policy</a>
+            <a href="#" style="color: #2563eb; text-decoration: none; font-size: 12px; margin: 0 10px;">Terms of Service</a>
+            <a href="#" style="color: #2563eb; text-decoration: none; font-size: 12px; margin: 0 10px;">Support</a>
+          </div>
         </div>
       </div>
     `;
 
     // Plain text version as fallback
     const textContent = `
-      Invoice #${invoiceNumber} - ${companyName}
+      Invoice #${invoiceNumber} - Samasi
       
       Dear ${clientName},
       
-      Please find attached your invoice #${invoiceNumber} from ${companyName}.
+      We hope this email finds you well. Please find attached your invoice from Samasi, your trusted invoice management partner.
       
       Invoice Details:
       - Invoice Number: ${invoiceNumber}
       - Amount: ${formattedAmount}
       - Date: ${currentDate}
-      - From: ${companyName}
+      - From: Samasi
       
       The invoice is attached as a PDF document. Please review the details and process payment according to the terms specified.
       
       If you have any questions about this invoice, please don't hesitate to contact us.
       
-      Thank you for your business!
-      ${companyName}
+      Thank you for choosing Samasi for your business needs!
+      
+      Best regards,
+      The Samasi Team
+      
+      ---
+      Samasi - Professional Invoice Management
+      © ${new Date().getFullYear()} Samasi. All rights reserved.
     `;
 
     // Send the email with PDF attachment
