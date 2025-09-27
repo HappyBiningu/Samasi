@@ -8,6 +8,9 @@ import { PaymentDelayPredictor, ClientRiskScorer, AnomalyDetector, ClientSegment
 import multer from "multer";
 import path from "path";
 import fs from "fs/promises";
+import { sendInvoiceEmail, testEmailConfiguration } from "./email";
+import jsPDF from "jspdf";
+import { z } from "zod";
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // Configure multer for file uploads
@@ -605,6 +608,171 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.send(csvContent);
     } catch (error) {
       res.status(500).json({ message: "Failed to export client data" });
+    }
+  });
+
+  // PDF Generation utility function
+  async function generateInvoicePDF(invoice: any, companyName: string): Promise<Buffer> {
+    const doc = new jsPDF();
+    
+    // Set font
+    doc.setFont("helvetica");
+    
+    // Header
+    doc.setFontSize(20);
+    doc.text("INVOICE", 105, 30, { align: "center" });
+    
+    // Company info
+    doc.setFontSize(12);
+    doc.text(companyName, 20, 50);
+    
+    // Invoice details
+    doc.setFontSize(10);
+    doc.text(`Invoice Number: ${invoice.invoiceNumber}`, 20, 70);
+    doc.text(`Invoice Date: ${invoice.invoiceDate}`, 20, 80);
+    doc.text(`Due Date: ${invoice.dueDate || 'N/A'}`, 20, 90);
+    doc.text(`Status: ${invoice.status.toUpperCase()}`, 120, 70);
+    
+    // Client details
+    doc.setFontSize(12);
+    doc.text("Bill To:", 20, 110);
+    doc.setFontSize(10);
+    doc.text(invoice.clientName, 20, 120);
+    doc.text(`Reg Number: ${invoice.clientRegNumber}`, 20, 130);
+    doc.text(`VAT Number: ${invoice.clientVatNumber}`, 20, 140);
+    
+    // Line items table
+    let yPosition = 160;
+    doc.setFontSize(10);
+    doc.text("Description", 20, yPosition);
+    doc.text("Amount", 150, yPosition);
+    
+    // Draw line under headers
+    doc.line(20, yPosition + 2, 190, yPosition + 2);
+    yPosition += 10;
+    
+    // Add line items
+    invoice.lineItems.forEach((item: any) => {
+      doc.text(item.description, 20, yPosition);
+      doc.text(`R${(item.amount / 100).toFixed(2)}`, 150, yPosition);
+      yPosition += 10;
+    });
+    
+    // Totals
+    yPosition += 10;
+    doc.line(120, yPosition, 190, yPosition);
+    yPosition += 10;
+    
+    doc.text(`Subtotal: R${(invoice.subtotal / 100).toFixed(2)}`, 120, yPosition);
+    yPosition += 10;
+    doc.text(`VAT: R${(invoice.vat / 100).toFixed(2)}`, 120, yPosition);
+    yPosition += 10;
+    doc.setFontSize(12);
+    doc.text(`Total: R${(invoice.total / 100).toFixed(2)}`, 120, yPosition);
+    
+    // Bank details if available
+    if (invoice.bankDetails) {
+      yPosition += 20;
+      doc.setFontSize(12);
+      doc.text("Banking Details:", 20, yPosition);
+      doc.setFontSize(10);
+      yPosition += 10;
+      doc.text(`Bank: ${invoice.bankDetails.bankName}`, 20, yPosition);
+      yPosition += 8;
+      doc.text(`Account Name: ${invoice.bankDetails.accountName}`, 20, yPosition);
+      yPosition += 8;
+      doc.text(`Account Number: ${invoice.bankDetails.accountNumber}`, 20, yPosition);
+      if (invoice.bankDetails.sortCode) {
+        yPosition += 8;
+        doc.text(`Sort Code: ${invoice.bankDetails.sortCode}`, 20, yPosition);
+      }
+    }
+    
+    // Convert to buffer
+    const pdfArrayBuffer = doc.output('arraybuffer');
+    return Buffer.from(pdfArrayBuffer);
+  }
+
+  // Email functionality
+
+  // Email configuration test endpoint
+  app.get("/api/email/test", async (req: Request, res: Response) => {
+    try {
+      const isConfigured = await testEmailConfiguration();
+      res.json({ 
+        configured: isConfigured, 
+        message: isConfigured ? "Email configuration is valid" : "Email configuration is incomplete" 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to test email configuration" });
+    }
+  });
+
+  // Generate and send invoice via email
+  app.post("/api/invoices/:id/send-email", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid invoice ID" });
+      }
+
+      // Validate request body
+      const emailSchema = z.object({
+        recipientEmail: z.string().email("Invalid email address"),
+        message: z.string().optional()
+      });
+
+      const parseResult = emailSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        const validationError = fromZodError(parseResult.error);
+        return res.status(400).json({ message: validationError.message });
+      }
+
+      const { recipientEmail, message } = parseResult.data;
+
+      // Get the invoice
+      const invoice = await storage.getInvoice(id);
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+
+      // Get company details if it's an external invoice
+      let companyName = "Your Company";
+      if (invoice.invoiceType === "external" && invoice.companyId) {
+        const company = await storage.getCompany(invoice.companyId);
+        if (company) {
+          companyName = company.name;
+        }
+      }
+
+      // Generate PDF
+      const pdfBuffer = await generateInvoicePDF(invoice, companyName);
+
+      // Send email
+      const emailSent = await sendInvoiceEmail(
+        recipientEmail,
+        invoice.invoiceNumber,
+        companyName,
+        invoice.clientName,
+        pdfBuffer,
+        invoice.total / 100, // Convert from cents to currency
+        "ZAR" // South African Rand
+      );
+
+      if (emailSent) {
+        res.json({ 
+          success: true, 
+          message: `Invoice #${invoice.invoiceNumber} sent successfully to ${recipientEmail}` 
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "Failed to send email. Please check email configuration and try again." 
+        });
+      }
+    } catch (error) {
+      console.error("Error sending invoice email:", error);
+      res.status(500).json({ message: "Failed to send invoice email" });
     }
   });
 

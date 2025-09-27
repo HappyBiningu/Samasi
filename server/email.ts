@@ -37,7 +37,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     console.log(`Attempting to send email to ${params.to} with subject: ${params.subject}`);
 
     // Create nodemailer transporter
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host: smtpHost,
       port: smtpPort,
       secure: smtpPort === 465, // Use SSL for port 465, TLS for 587
