@@ -1,0 +1,683 @@
+import nodemailer from 'nodemailer';
+
+interface EmailParams {
+  to: string;
+  from: string;
+  subject: string;
+  text?: string;
+  html?: string;
+  attachments?: Array<{
+    filename: string;
+    content: Buffer | string;
+    contentType?: string;
+  }>;
+}
+
+/**
+ * Send an email using SMTP (e.g., Gmail) with nodemailer
+ * @param params Email parameters
+ * @returns Boolean indicating success/failure
+ */
+export async function sendEmail(params: EmailParams): Promise<boolean> {
+  try {
+    // Read SMTP configuration from environment variables
+    const smtpServer = process.env.SMTP_SERVER || 'smtp.gmail.com';
+    const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
+    const smtpUser = process.env.SMTP_USER || 'farmerztool@gmail.com';
+    const smtpPassword = process.env.SMTP_PASSWORD || 'duma uoca oqvs bgib';
+    const fromEmail = process.env.FROM_EMAIL || 'farmerztool@gmail.com';
+
+    // Validate required environment variables
+    if (!smtpUser || !smtpPassword) {
+      console.error('Cannot send email: SMTP_USER or SMTP_PASSWORD is not set');
+      return false;
+    }
+
+    // Log send attempt
+    console.log(`Attempting to send email to ${params.to} from ${params.from} with subject: ${params.subject}`);
+
+    // Create nodemailer transporter
+    const transporter = nodemailer.createTransport({
+      host: smtpServer,
+      port: smtpPort,
+      secure: smtpPort === 465, // Use SSL for port 465, TLS for 587
+      auth: {
+        user: smtpUser,
+        pass: smtpPassword,
+      },
+    });
+
+    // Define email options
+    const mailOptions: any = {
+      from: fromEmail,
+      to: params.to,
+      subject: params.subject,
+      text: params.text || '',
+      html: params.html || '',
+    };
+
+    // Add attachments if provided
+    if (params.attachments && params.attachments.length > 0) {
+      mailOptions.attachments = params.attachments;
+    }
+
+    // Send email
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`Email sent successfully to ${params.to} (Message ID: ${info.messageId})`);
+    return true;
+  } catch (error: any) {
+    if (error.responseCode) {
+      // Handle specific SMTP errors
+      if (error.responseCode >= 400 && error.responseCode < 500) {
+        console.error(`Authentication failed for ${process.env.SMTP_USER} on ${process.env.SMTP_SERVER}:${process.env.SMTP_PORT}. Check username/password.`);
+      } else if (error.responseCode >= 500) {
+        console.error(`Server error on ${process.env.SMTP_SERVER}:${process.env.SMTP_PORT}. Response: ${error.response}`);
+      }
+    } else {
+      console.error(`Failed to send email to ${params.to}: ${error.message}`);
+    }
+    return false;
+  }
+}
+
+/**
+ * Send a password reset email
+ * @param email Recipient email address
+ * @param resetToken Reset token
+ * @param appUrl Base application URL
+ * @returns Boolean indicating success/failure
+ */
+/**
+ * Send a team invitation email
+ * @param inviteEmail Recipient email address
+ * @param inviteToken Invitation token
+ * @param inviterName Name of the person sending the invite
+ * @param inviterEmail Email of the person sending the invite
+ * @param role Role being offered
+ * @param department Department being offered
+ * @param appUrl Base application URL
+ * @param inviterFarmName Name of the inviter's farm
+ * @returns Boolean indicating success/failure
+ */
+export async function sendTeamInvitationEmail(
+  inviteEmail: string,
+  inviteToken: string,
+  inviterName: string,
+  inviterEmail: string,
+  role: string,
+  department: string,
+  appUrl: string = process.env.APP_URL || 'http://localhost:5000',
+  inviterFarmName: string = 'Farm'
+): Promise<boolean> {
+  try {
+    const inviteUrl = `${appUrl}/accept-invitation?token=${inviteToken}`;
+
+    // Create HTML version with professional formatting and branding
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
+        <!-- Header with logo and brand colors -->
+        <div style="background: linear-gradient(to right, #eab308, #ca8a04); padding: 20px; text-align: center;">
+          <h1 style="color: black; margin: 0; font-size: 24px;">FarmerzTool</h1>
+          <p style="color: black; margin: 5px 0 0 0; font-size: 14px;">Livestock Management Made Simple</p>
+        </div>
+        
+        <!-- Main content area -->
+        <div style="padding: 30px; background-color: #ffffff;">
+          <h2 style="color: #1f4733; margin-top: 0;">You've Been Invited to Join Our Team!</h2>
+          <p style="color: #333; line-height: 1.5;">Hello,</p>
+          <p style="color: #333; line-height: 1.5;"><strong>${inviterName}</strong> (${inviterEmail}) has invited you to join ${inviterFarmName} farm management team on FarmerzTool.</p>
+          
+          <div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 20px; margin: 20px 0;">
+            <h3 style="color: #1f4733; margin-top: 0;">Invitation Details:</h3>
+            <p style="margin: 8px 0; color: #333;"><strong>Role:</strong> ${role}</p>
+            <p style="margin: 8px 0; color: #333;"><strong>Department:</strong> ${department}</p>
+            <p style="margin: 8px 0; color: #333;"><strong>Invited by:</strong> ${inviterName}</p>
+          </div>
+          
+          <!-- Action button -->
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${inviteUrl}" style="display: inline-block; background: linear-gradient(to right, #eab308, #ca8a04); color: black; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; text-transform: uppercase; font-size: 14px;">Accept Invitation</a>
+          </div>
+          
+          <p style="color: #333; line-height: 1.5;">By accepting this invitation, you'll gain access to our comprehensive farm management platform including livestock tracking, health records, financial management, and much more.</p>
+          
+          <div style="background-color: #f9f9f9; border-left: 4px solid #eab308; padding: 15px; margin: 20px 0; border-radius: 0 4px 4px 0;">
+            <p style="color: #666; margin: 0 0 8px 0; font-size: 14px;"><strong>Important:</strong> This invitation will expire in 7 days for security reasons.</p>
+            <p style="color: #666; margin: 0; font-size: 14px;">If the button above doesn't work, copy and paste the following URL into your browser:</p>
+            <p style="word-break: break-all; color: #1f4733; font-size: 12px; margin: 8px 0 0 0;">${inviteUrl}</p>
+          </div>
+        </div>
+        
+        <!-- Footer area -->
+        <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #e0e0e0;">
+          <p style="color: #666; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} FarmerzTool. All rights reserved.</p>
+          <p style="color: #666; font-size: 12px; margin: 8px 0 0 0;">This invitation was sent by ${inviterName} (${inviterEmail}).</p>
+        </div>
+      </div>
+    `;
+
+    // Plain text version as fallback
+    const textContent = `
+      Team Invitation - FarmerzTool
+      
+      Hello,
+      
+      ${inviterName} (${inviterEmail}) has invited you to join their farm management team on FarmerzTool.
+      
+      Invitation Details:
+      - Role: ${role}
+      - Department: ${department}
+      - Invited by: ${inviterName}
+      
+      To accept this invitation, please visit: ${inviteUrl}
+      
+      By accepting this invitation, you'll gain access to our comprehensive farm management platform including livestock tracking, health records, financial management, and much more.
+      
+      This invitation will expire in 7 days.
+      
+      FarmerzTool - Livestock Management Made Simple
+    `;
+
+    // Send the email using the inviter's email as the "from" address
+    console.log(`Attempting to send team invitation email to ${inviteEmail} from ${inviterEmail}`);
+
+    // Send the email
+    return await sendEmail({
+      to: inviteEmail,
+      from: inviterEmail,
+      subject: `You're invited to join ${inviterName}'s team on FarmerzTool`,
+      text: textContent,
+      html: htmlContent,
+    });
+  } catch (error: any) {
+    console.error('Error in sendTeamInvitationEmail:', error.message);
+    return false;
+  }
+}
+
+/**
+ * Send a report email with PDF attachment
+ * @param email Recipient email address
+ * @param reportTitle Report title
+ * @param reportContent HTML content of the report
+ * @param farmName Name of the farm
+ * @param senderName Name of the person sending the report
+ * @returns Boolean indicating success/failure
+ */
+export async function sendReportEmail(
+  email: string,
+  reportTitle: string,
+  reportContent: string,
+  farmName: string,
+  senderName: string,
+  pdfBuffer?: Buffer,
+  filename?: string
+): Promise<boolean> {
+  try {
+    const currentDate = new Date().toLocaleDateString();
+    
+    // Create HTML version with professional formatting and branding
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
+        <!-- Header with logo and brand colors -->
+        <div style="background: linear-gradient(to right, #2e7d32, #4caf50); padding: 20px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">FarmerzTool</h1>
+          <p style="color: white; margin: 5px 0 0 0; font-size: 14px;">Livestock Management Made Simple</p>
+        </div>
+        
+        <!-- Main content area -->
+        <div style="padding: 30px; background-color: #ffffff;">
+          <h2 style="color: #2e7d32; margin-top: 0;">${reportTitle} - ${farmName}</h2>
+          <p style="color: #333; line-height: 1.5;">Hello,</p>
+          <p style="color: #333; line-height: 1.5;">Please find your requested ${reportTitle} for ${farmName} generated on ${currentDate}. This report has been sent by ${senderName}.</p>
+          
+          <!-- Report preview section -->
+          <div style="background-color: #f9f9f9; border-left: 4px solid #2e7d32; padding: 15px; margin: 20px 0; border-radius: 0 4px 4px 0;">
+            <h3 style="color: #2e7d32; margin: 0 0 10px 0; font-size: 16px;">Report Summary</h3>
+            <p style="color: #666; margin: 0; font-size: 14px;"><strong>Report Type:</strong> ${reportTitle}</p>
+            <p style="color: #666; margin: 5px 0 0 0; font-size: 14px;"><strong>Generated:</strong> ${currentDate}</p>
+            <p style="color: #666; margin: 5px 0 0 0; font-size: 14px;"><strong>Farm:</strong> ${farmName}</p>
+          </div>
+          
+          <p style="color: #333; line-height: 1.5;">The report has been generated with the most current data available and includes comprehensive details about your farm operations.</p>
+          
+          <!-- Disclaimer Section -->
+          <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; padding: 15px; margin: 20px 0;">
+            <h4 style="color: #856404; margin: 0 0 10px 0; font-size: 14px;">📋 Report Disclaimer</h4>
+            <p style="color: #856404; margin: 0; font-size: 12px; line-height: 1.4;">
+              This report is generated from your farm management system data and is intended for informational purposes only. 
+              Data accuracy depends on proper record keeping and system maintenance. Please verify critical information before making business decisions. 
+              FarmerzTool is not responsible for any decisions made based on this report data.
+            </p>
+          </div>
+        </div>
+        
+        <!-- Footer area -->
+        <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #e0e0e0;">
+          <p style="color: #666; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} FarmerzTool. All rights reserved.</p>
+          <p style="color: #666; font-size: 12px; margin: 8px 0 0 0;">This is an automated message generated from your farm management system.</p>
+        </div>
+      </div>
+    `;
+
+    // Plain text version as fallback
+    const textContent = `
+      ${reportTitle} - FarmerzTool
+      
+      Hello,
+      
+      Please find your requested ${reportTitle} for ${farmName} generated on ${currentDate}.
+      
+      Report Details:
+      - Report Type: ${reportTitle}
+      - Generated: ${currentDate}
+      - Farm: ${farmName}
+      - Sent by: ${senderName}
+      
+      The report has been generated with the most current data available and includes comprehensive details about your farm operations.
+      
+      FarmerzTool - Livestock Management Made Simple
+    `;
+
+    // Use the verified sender email from environment variables
+    const fromEmail = process.env.FROM_EMAIL || 'farmerztool@gmail.com';
+
+    // Log the attempt
+    console.log(`Attempting to send report email to ${email} from ${fromEmail}`);
+
+    // Prepare email options
+    const emailOptions: any = {
+      to: email,
+      from: fromEmail,
+      subject: `${reportTitle} - ${farmName} | FarmerzTool Report`,
+      text: textContent,
+      html: htmlContent,
+    };
+
+    // Add PDF attachment if provided
+    if (pdfBuffer && filename) {
+      emailOptions.attachments = [{
+        filename: filename,
+        content: pdfBuffer,
+        contentType: 'application/pdf'
+      }];
+      console.log(`Adding PDF attachment: ${filename}`);
+    }
+
+    // Send the email
+    return await sendEmail(emailOptions);
+  } catch (error: any) {
+    console.error('Error in sendReportEmail:', error.message);
+    return false;
+  }
+}
+
+export async function sendPasswordResetEmail(
+  email: string,
+  resetToken: string,
+  appUrl: string = process.env.APP_URL || 'http://localhost:5000'
+): Promise<boolean> {
+  try {
+    const resetUrl = `${appUrl}/reset-password?token=${resetToken}`;
+
+    // Create HTML version with professional formatting and branding
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
+        <!-- Header with logo and brand colors -->
+        <div style="background: linear-gradient(to right, #2e7d32, #4caf50); padding: 20px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">FarmerzTool</h1>
+          <p style="color: white; margin: 5px 0 0 0; font-size: 14px;">Livestock Management Made Simple</p>
+        </div>
+        
+        <!-- Main content area -->
+        <div style="padding: 30px; background-color: #ffffff;">
+          <h2 style="color: #2e7d32; margin-top: 0;">Password Reset Request</h2>
+          <p style="color: #333; line-height: 1.5;">Hello,</p>
+          <p style="color: #333; line-height: 1.5;">We received a request to reset your password for your FarmerzTool account. To complete the process, please click the button below:</p>
+          
+          <!-- Action button -->
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetUrl}" style="display: inline-block; background: linear-gradient(to right, #2e7d32, #4caf50); color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; text-transform: uppercase; font-size: 14px;">Reset Password</a>
+          </div>
+          
+          <p style="color: #333; line-height: 1.5;">If you didn't request this password reset, you can safely ignore this email. Your account security is important to us, and your account remains secure.</p>
+          
+          <div style="background-color: #f9f9f9; border-left: 4px solid #2e7d32; padding: 15px; margin: 20px 0; border-radius: 0 4px 4px 0;">
+            <p style="color: #666; margin: 0 0 8px 0; font-size: 14px;"><strong>Important:</strong> This link will expire in 24 hours for security reasons.</p>
+            <p style="color: #666; margin: 0; font-size: 14px;">If the button above doesn't work, copy and paste the following URL into your browser:</p>
+            <p style="word-break: break-all; color: #2e7d32; font-size: 12px; margin: 8px 0 0 0;">${resetUrl}</p>
+          </div>
+        </div>
+        
+        <!-- Footer area -->
+        <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #e0e0e0;">
+          <p style="color: #666; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} FarmerzTool. All rights reserved.</p>
+          <p style="color: #666; font-size: 12px; margin: 8px 0 0 0;">This is an automated message, please do not reply to this email.</p>
+        </div>
+      </div>
+    `;
+
+    // Plain text version as fallback
+    const textContent = `
+      Password Reset - FarmerzTool
+      
+      Hello,
+      
+      We received a request to reset your password for FarmerzTool. To complete the process, please visit the link below:
+      
+      ${resetUrl}
+      
+      If you didn't request this password reset, you can safely ignore this email. Your account is secure.
+      
+      This link will expire in 24 hours.
+      
+      FarmerzTool - Livestock Management Made Simple
+    `;
+
+    // Use the verified sender email from environment variables
+    const fromEmail = process.env.FROM_EMAIL || 'farmerztool@gmail.com';
+
+    // Log the attempt
+    console.log(`Attempting to send password reset email to ${email} from ${fromEmail}`);
+
+    // Send the email
+    return await sendEmail({
+      to: email,
+      from: fromEmail,
+      subject: 'Password Reset Instructions - FarmerzTool',
+      text: textContent,
+      html: htmlContent,
+    });
+  } catch (error: any) {
+    console.error('Error in sendPasswordResetEmail:', error.message);
+    return false;
+  }
+}
+
+/**
+ * Send a contact form notification email to the admin team
+ * @param contactData Contact form submission data
+ * @param submissionId Database submission ID for reference
+ * @returns Boolean indicating success/failure
+ */
+export async function sendContactFormNotificationEmail(
+  contactData: {
+    firstName: string;
+    lastName: string;
+    farmName: string;
+    email: string;
+    phone: string;
+    inquiryType: string;
+    message: string;
+  },
+  submissionId: number
+): Promise<boolean> {
+  console.log("📧 Starting email notification process");
+  console.log("📧 Contact data:", contactData);
+  console.log("📧 Submission ID:", submissionId);
+  
+  try {
+    const adminEmail = 'farmerztool@gmail.com';
+    console.log("📧 Admin email:", adminEmail);
+    
+    const formattedDate = new Date().toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+    console.log("📧 Formatted date:", formattedDate);
+
+    // Create HTML version with professional formatting
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
+        <!-- Header with logo and brand colors -->
+        <div style="background: linear-gradient(to right, #1f4733, #2e7d32); padding: 20px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">FarmerzTool</h1>
+          <p style="color: white; margin: 5px 0 0 0; font-size: 14px;">New Contact Form Submission</p>
+        </div>
+        
+        <!-- Main content area -->
+        <div style="padding: 30px; background-color: #ffffff;">
+          <h2 style="color: #1f4733; margin-top: 0;">📨 New Contact Form Submission</h2>
+          <p style="color: #333; line-height: 1.5;">A new contact form has been submitted on the FarmerzTool website.</p>
+          
+          <div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 20px; margin: 20px 0;">
+            <h3 style="color: #1f4733; margin-top: 0;">Contact Information:</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 8px 0; font-weight: bold; color: #495057; width: 25%;">Name:</td>
+                <td style="padding: 8px 0; color: #333;">${contactData.firstName} ${contactData.lastName}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 8px 0; font-weight: bold; color: #495057;">Farm:</td>
+                <td style="padding: 8px 0; color: #333;">${contactData.farmName}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 8px 0; font-weight: bold; color: #495057;">Email:</td>
+                <td style="padding: 8px 0; color: #333;"><a href="mailto:${contactData.email}" style="color: #1f4733; text-decoration: none;">${contactData.email}</a></td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 8px 0; font-weight: bold; color: #495057;">Phone:</td>
+                <td style="padding: 8px 0; color: #333;"><a href="tel:${contactData.phone}" style="color: #1f4733; text-decoration: none;">${contactData.phone}</a></td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 8px 0; font-weight: bold; color: #495057;">Inquiry Type:</td>
+                <td style="padding: 8px 0; color: #333;">${contactData.inquiryType}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #495057;">Submitted:</td>
+                <td style="padding: 8px 0; color: #333;">${formattedDate}</td>
+              </tr>
+            </table>
+          </div>
+          
+          <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 0 4px 4px 0;">
+            <h4 style="color: #856404; margin-top: 0;">📝 Message:</h4>
+            <p style="color: #856404; margin: 0; white-space: pre-wrap; line-height: 1.5;">${contactData.message}</p>
+          </div>
+          
+          <div style="background-color: #e8f5e8; border: 1px solid #4caf50; border-radius: 6px; padding: 20px; margin: 20px 0;">
+            <h4 style="color: #2e7d32; margin-top: 0;">🔗 Quick Actions:</h4>
+            <p style="margin: 8px 0; color: #333;">
+              <strong>Reply directly:</strong> <a href="mailto:${contactData.email}?subject=Re: ${contactData.inquiryType} - ${contactData.farmName}" style="color: #1f4733; text-decoration: none;">${contactData.email}</a>
+            </p>
+            <p style="margin: 8px 0; color: #333;">
+              <strong>Call customer:</strong> <a href="tel:${contactData.phone}" style="color: #1f4733; text-decoration: none;">${contactData.phone}</a>
+            </p>
+            <p style="margin: 8px 0; color: #333;">
+              <strong>Submission ID:</strong> #${submissionId}
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="mailto:${contactData.email}?subject=Re: Your inquiry about FarmerzTool - ${contactData.farmName}&body=Hi ${contactData.firstName},%0D%0A%0D%0AThank you for your interest in FarmerzTool. I received your message regarding ${contactData.inquiryType.toLowerCase()}.%0D%0A%0D%0A" style="display: inline-block; background: linear-gradient(to right, #1f4733, #2e7d32); color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 14px;">📧 Reply to Customer</a>
+          </div>
+        </div>
+        
+        <!-- Footer area -->
+        <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #e0e0e0;">
+          <p style="color: #666; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} FarmerzTool. All rights reserved.</p>
+          <p style="color: #666; font-size: 12px; margin: 8px 0 0 0;">This is an automated notification from the contact form system.</p>
+        </div>
+      </div>
+    `;
+
+    // Plain text version as fallback
+    const textContent = `
+      New Contact Form Submission - FarmerzTool
+      
+      CONTACT INFORMATION:
+      Name: ${contactData.firstName} ${contactData.lastName}
+      Farm: ${contactData.farmName}
+      Email: ${contactData.email}
+      Phone: ${contactData.phone}
+      Inquiry Type: ${contactData.inquiryType}
+      Submitted: ${formattedDate}
+      Submission ID: #${submissionId}
+      
+      MESSAGE:
+      ${contactData.message}
+      
+      QUICK ACTIONS:
+      - Reply directly: ${contactData.email}
+      - Call customer: ${contactData.phone}
+      
+      FarmerzTool Contact Form System
+    `;
+
+    // Use the verified sender email from environment variables
+    const fromEmail = process.env.FROM_EMAIL || 'farmerztool@gmail.com';
+
+    // Log the attempt
+    console.log(`📧 Attempting to send contact form notification to ${adminEmail} for submission #${submissionId}`);
+    console.log(`📧 From email: ${fromEmail}`);
+    console.log(`📧 Subject: 🚨 New Contact Form: ${contactData.inquiryType} - ${contactData.farmName}`);
+
+    // Send the email
+    const emailResult = await sendEmail({
+      to: adminEmail,
+      from: fromEmail,
+      subject: `🚨 New Contact Form: ${contactData.inquiryType} - ${contactData.farmName}`,
+      text: textContent,
+      html: htmlContent,
+    });
+    
+    console.log(`📧 Email send result: ${emailResult}`);
+    return emailResult;
+  } catch (error: any) {
+    console.error('💥 Error in sendContactFormNotificationEmail:', error.message);
+    console.error('📊 Error stack:', error.stack);
+    return false;
+  }
+}
+
+/**
+ * Send a password change notification email
+ * @param email Recipient email address
+ * @param userName User's name for personalization
+ * @param changeTime Timestamp of when password was changed
+ * @param appUrl Base application URL
+ * @returns Boolean indicating success/failure
+ */
+export async function sendPasswordChangeNotificationEmail(
+  email: string,
+  userName: string = 'User',
+  changeTime: Date = new Date(),
+  appUrl: string = process.env.APP_URL || 'http://localhost:5000'
+): Promise<boolean> {
+  try {
+    const formattedTime = changeTime.toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+
+    // Create HTML version with professional formatting and branding
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
+        <!-- Header with logo and brand colors -->
+        <div style="background: linear-gradient(to right, #2e7d32, #4caf50); padding: 20px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">FarmerzTool</h1>
+          <p style="color: white; margin: 5px 0 0 0; font-size: 14px;">Livestock Management Made Simple</p>
+        </div>
+        
+        <!-- Main content area -->
+        <div style="padding: 30px; background-color: #ffffff;">
+          <h2 style="color: #2e7d32; margin-top: 0;">Password Successfully Changed</h2>
+          <p style="color: #333; line-height: 1.5;">Hello ${userName},</p>
+          <p style="color: #333; line-height: 1.5;">We're writing to confirm that your FarmerzTool account password was successfully changed.</p>
+          
+          <div style="background-color: #e8f5e8; border: 1px solid #4caf50; border-radius: 6px; padding: 20px; margin: 20px 0;">
+            <h3 style="color: #2e7d32; margin-top: 0; display: flex; align-items: center;">
+              <span style="margin-right: 10px;">✓</span>Password Change Confirmed
+            </h3>
+            <p style="margin: 8px 0; color: #333;"><strong>Account:</strong> ${email}</p>
+            <p style="margin: 8px 0; color: #333;"><strong>Changed on:</strong> ${formattedTime}</p>
+            <p style="margin: 8px 0; color: #333;"><strong>Action:</strong> Password updated successfully</p>
+          </div>
+          
+          <p style="color: #333; line-height: 1.5;">If you made this change, no further action is required. Your account is secure and you can continue using FarmerzTool with your new password.</p>
+          
+          <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 0 4px 4px 0;">
+            <p style="color: #856404; margin: 0 0 8px 0; font-size: 14px;"><strong>Important Security Notice:</strong></p>
+            <p style="color: #856404; margin: 0; font-size: 14px;">If you did not make this change, please contact our support team immediately and secure your account.</p>
+          </div>
+          
+          <!-- Action buttons -->
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="mailto:support@farmerztool.com" style="display: inline-block; background: #f8f9fa; color: #495057; border: 1px solid #dee2e6; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 14px;">Contact Support</a>
+          </div>
+          
+          <p style="color: #666; line-height: 1.5; font-size: 14px;">For your security, we recommend:</p>
+          <ul style="color: #666; line-height: 1.5; font-size: 14px; padding-left: 20px;">
+            <li>Using a strong, unique password</li>
+            <li>Enabling two-factor authentication if available</li>
+            <li>Logging out of shared devices</li>
+            <li>Regularly reviewing your account activity</li>
+          </ul>
+        </div>
+        
+        <!-- Footer area -->
+        <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #e0e0e0;">
+          <p style="color: #666; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} FarmerzTool. All rights reserved.</p>
+          <p style="color: #666; font-size: 12px; margin: 8px 0 0 0;">This is an automated security notification.</p>
+        </div>
+      </div>
+    `;
+
+    // Plain text version as fallback
+    const textContent = `
+      Password Change Notification - FarmerzTool
+      
+      Hello ${userName},
+      
+      We're writing to confirm that your FarmerzTool account password was successfully changed.
+      
+      Change Details:
+      - Account: ${email}
+      - Changed on: ${formattedTime}
+      - Action: Password updated successfully
+      
+      If you made this change, no further action is required. Your account is secure and you can continue using FarmerzTool with your new password.
+      
+      IMPORTANT SECURITY NOTICE:
+      If you did not make this change, please contact our support team immediately and secure your account.
+      
+      Contact Support: support@farmerztool.com
+      
+      For your security, we recommend:
+      - Using a strong, unique password
+      - Enabling two-factor authentication if available
+      - Logging out of shared devices
+      - Regularly reviewing your account activity
+      
+      FarmerzTool - Livestock Management Made Simple
+    `;
+
+    // Use the verified sender email from environment variables
+    const fromEmail = process.env.FROM_EMAIL || 'farmerztool@gmail.com';
+
+    // Log the attempt
+    console.log(`Attempting to send password change notification email to ${email} from ${fromEmail}`);
+
+    // Send the email
+    return await sendEmail({
+      to: email,
+      from: fromEmail,
+      subject: 'Password Changed Successfully - FarmerzTool',
+      text: textContent,
+      html: htmlContent,
+    });
+  } catch (error: any) {
+    console.error('Error in sendPasswordChangeNotificationEmail:', error.message);
+    return false;
+  }
+}
