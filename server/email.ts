@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
 interface EmailParams {
   to: string;
@@ -21,20 +21,24 @@ interface EmailParams {
 export async function sendEmail(params: EmailParams): Promise<boolean> {
   try {
     // Hardcoded SMTP configuration
-    const smtpHost = 'smtp.gmail.com';
+    const smtpHost = "smtp.gmail.com";
     const smtpPort = 587;
-    const smtpUser = 'your-email@gmail.com'; // Replace with your Gmail address
-    const smtpPassword = 'your-app-password'; // Replace with your Gmail app password
-    const fromEmail = 'your-email@gmail.com'; // Replace with your Gmail address
+    const smtpUser = "devsamasi1@gmail.com"; // Replace with your Gmail address
+    const smtpPassword = "goej tmnv fmpm qbzj"; // Replace with your Gmail app password
+    const fromEmail = "devsamasi1@gmail.com"; // Replace with your Gmail address
 
     // Validate required configuration
     if (!smtpUser || !smtpPassword || !fromEmail) {
-      console.error('Cannot send email: Missing SMTP configuration. Please update the hardcoded values in server/email.ts');
+      console.error(
+        "Cannot send email: Missing SMTP configuration. Please update the hardcoded values in server/email.ts",
+      );
       return false;
     }
 
     // Log send attempt (without exposing sensitive data)
-    console.log(`Attempting to send email to ${params.to} with subject: ${params.subject}`);
+    console.log(
+      `Attempting to send email to ${params.to} with subject: ${params.subject}`,
+    );
 
     // Create nodemailer transporter
     const transporter = nodemailer.createTransport({
@@ -52,8 +56,8 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       from: params.from || fromEmail,
       to: params.to,
       subject: params.subject,
-      text: params.text || '',
-      html: params.html || '',
+      text: params.text || "",
+      html: params.html || "",
     };
 
     // Add attachments if provided
@@ -63,15 +67,21 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
 
     // Send email
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Email sent successfully to ${params.to} (Message ID: ${info.messageId})`);
+    console.log(
+      `Email sent successfully to ${params.to} (Message ID: ${info.messageId})`,
+    );
     return true;
   } catch (error: any) {
     if (error.responseCode) {
       // Handle specific SMTP errors
       if (error.responseCode >= 400 && error.responseCode < 500) {
-        console.error(`Authentication failed for SMTP. Check username/password in Replit Secrets.`);
+        console.error(
+          `Authentication failed for SMTP. Check username/password in Replit Secrets.`,
+        );
       } else if (error.responseCode >= 500) {
-        console.error(`Server error on ${process.env.SMTP_HOST}:${process.env.SMTP_PORT}. Response: ${error.response}`);
+        console.error(
+          `Server error on ${process.env.SMTP_HOST}:${process.env.SMTP_PORT}. Response: ${error.response}`,
+        );
       }
     } else {
       console.error(`Failed to send email to ${params.to}: ${error.message}`);
@@ -97,12 +107,12 @@ export async function sendInvoiceEmail(
   clientName: string,
   pdfBuffer: Buffer,
   invoiceAmount: number,
-  currency: string = 'USD'
+  currency: string = "USD",
 ): Promise<boolean> {
   try {
     const currentDate = new Date().toLocaleDateString();
-    const formattedAmount = new Intl.NumberFormat('en-US', {
-      style: 'currency',
+    const formattedAmount = new Intl.NumberFormat("en-US", {
+      style: "currency",
       currency: currency,
     }).format(invoiceAmount);
 
@@ -227,12 +237,12 @@ export async function sendInvoiceEmail(
         {
           filename: `Invoice-${invoiceNumber}.pdf`,
           content: pdfBuffer,
-          contentType: 'application/pdf',
+          contentType: "application/pdf",
         },
       ],
     });
   } catch (error: any) {
-    console.error('Error in sendInvoiceEmail:', error.message);
+    console.error("Error in sendInvoiceEmail:", error.message);
     return false;
   }
 }
@@ -243,20 +253,22 @@ export async function sendInvoiceEmail(
  */
 export async function testEmailConfiguration(): Promise<boolean> {
   try {
-    const smtpHost = 'smtp.gmail.com';
-    const smtpUser = 'your-email@gmail.com'; // Replace with your Gmail address
-    const smtpPassword = 'your-app-password'; // Replace with your Gmail app password
-    const fromEmail = 'your-email@gmail.com'; // Replace with your Gmail address
+    const smtpHost = "smtp.gmail.com";
+    const smtpUser = "your-email@gmail.com"; // Replace with your Gmail address
+    const smtpPassword = "your-app-password"; // Replace with your Gmail app password
+    const fromEmail = "your-email@gmail.com"; // Replace with your Gmail address
 
     if (!smtpHost || !smtpUser || !smtpPassword || !fromEmail) {
-      console.error('Email configuration incomplete. Please update the hardcoded values in server/email.ts.');
+      console.error(
+        "Email configuration incomplete. Please update the hardcoded values in server/email.ts.",
+      );
       return false;
     }
 
-    console.log('Email configuration appears complete.');
+    console.log("Email configuration appears complete.");
     return true;
   } catch (error) {
-    console.error('Error testing email configuration:', error);
+    console.error("Error testing email configuration:", error);
     return false;
   }
 }
