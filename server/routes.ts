@@ -9,7 +9,6 @@ import multer from "multer";
 import path from "path";
 import fs from "fs/promises";
 import { sendInvoiceEmail, testEmailConfiguration } from "./email";
-import jsPDF from "jspdf";
 import { z } from "zod";
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -613,6 +612,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // PDF Generation utility function
   async function generateInvoicePDF(invoice: any, companyName: string): Promise<Buffer> {
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     
     // Set font
