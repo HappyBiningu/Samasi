@@ -40,9 +40,13 @@ A full-stack invoice management application built with React, Express, and TypeS
 - Fixed DOM nesting warnings in navigation components
 - Updated database schema to support bank details storage
 - Migrated from in-memory storage to PostgreSQL database with Drizzle ORM
-- Added editable bank details functionality to invoice system
-- Fixed DOM nesting warnings in navigation components
-- Updated database schema to support bank details storage
+- **Added complete email functionality for sending invoices**:
+  - Secure SMTP integration using Replit secrets management
+  - Professional email templates with PDF invoice attachments
+  - Email dialog UI for payment reminders and direct invoice sending
+  - Comprehensive error handling and user feedback
+  - Automatic PDF generation using jsPDF
+  - Email API routes with proper validation and debugging
 
 ## Development Notes
 - Uses port 5000 for both frontend and backend serving
