@@ -711,6 +711,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generate and send invoice via email
   app.post("/api/invoices/:id/send-email", async (req: Request, res: Response) => {
     try {
+      console.log("📧 Email request received for invoice:", req.params.id);
+      console.log("📧 Request body:", req.body);
+      
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid invoice ID" });
@@ -725,16 +728,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const parseResult = emailSchema.safeParse(req.body);
       if (!parseResult.success) {
         const validationError = fromZodError(parseResult.error);
+        console.error("📧 Email validation failed:", validationError.message);
         return res.status(400).json({ message: validationError.message });
       }
 
       const { recipientEmail, message } = parseResult.data;
+      console.log("📧 Sending email to:", recipientEmail);
 
       // Get the invoice
       const invoice = await storage.getInvoice(id);
       if (!invoice) {
+        console.error("📧 Invoice not found:", id);
         return res.status(404).json({ message: "Invoice not found" });
       }
+
+      console.log("📧 Found invoice:", invoice.invoiceNumber);
 
       // Get company details if it's an external invoice
       let companyName = "Your Company";
@@ -745,9 +753,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      console.log("📧 Company name:", companyName);
+      console.log("📧 Generating PDF...");
+
       // Generate PDF
       const pdfBuffer = await generateInvoicePDF(invoice, companyName);
+      console.log("📧 PDF generated, size:", pdfBuffer.length, "bytes");
 
+      console.log("📧 Sending email...");
       // Send email
       const emailSent = await sendInvoiceEmail(
         recipientEmail,
@@ -758,6 +771,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         invoice.total / 100, // Convert from cents to currency
         "ZAR" // South African Rand
       );
+
+      console.log("📧 Email sent result:", emailSent);
 
       if (emailSent) {
         res.json({ 
@@ -771,7 +786,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
     } catch (error) {
-      console.error("Error sending invoice email:", error);
+      console.error("📧 Error sending invoice email:", error);
       res.status(500).json({ message: "Failed to send invoice email" });
     }
   });
