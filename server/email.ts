@@ -20,16 +20,16 @@ interface EmailParams {
  */
 export async function sendEmail(params: EmailParams): Promise<boolean> {
   try {
-    // Read SMTP configuration from environment variables (set via Replit Secrets)
-    const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
-    const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPassword = process.env.SMTP_PASSWORD;
-    const fromEmail = process.env.FROM_EMAIL;
+    // Hardcoded SMTP configuration
+    const smtpHost = 'smtp.gmail.com';
+    const smtpPort = 587;
+    const smtpUser = 'your-email@gmail.com'; // Replace with your Gmail address
+    const smtpPassword = 'your-app-password'; // Replace with your Gmail app password
+    const fromEmail = 'your-email@gmail.com'; // Replace with your Gmail address
 
-    // Validate required environment variables
+    // Validate required configuration
     if (!smtpUser || !smtpPassword || !fromEmail) {
-      console.error('Cannot send email: Missing SMTP configuration. Please set SMTP_USER, SMTP_PASSWORD, and FROM_EMAIL in Replit Secrets');
+      console.error('Cannot send email: Missing SMTP configuration. Please update the hardcoded values in server/email.ts');
       return false;
     }
 
@@ -243,13 +243,13 @@ export async function sendInvoiceEmail(
  */
 export async function testEmailConfiguration(): Promise<boolean> {
   try {
-    const smtpHost = process.env.SMTP_HOST;
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPassword = process.env.SMTP_PASSWORD;
-    const fromEmail = process.env.FROM_EMAIL;
+    const smtpHost = 'smtp.gmail.com';
+    const smtpUser = 'your-email@gmail.com'; // Replace with your Gmail address
+    const smtpPassword = 'your-app-password'; // Replace with your Gmail app password
+    const fromEmail = 'your-email@gmail.com'; // Replace with your Gmail address
 
     if (!smtpHost || !smtpUser || !smtpPassword || !fromEmail) {
-      console.error('Email configuration incomplete. Please set all required environment variables in Replit Secrets.');
+      console.error('Email configuration incomplete. Please update the hardcoded values in server/email.ts.');
       return false;
     }
 
