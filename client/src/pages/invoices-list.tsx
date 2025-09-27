@@ -152,15 +152,18 @@ const InvoicesList = () => {
         recipientEmail: recipientEmail.trim(),
       });
 
-      if (response.success) {
+      console.log("Email response received:", response);
+
+      // Check if response indicates success
+      if (response && response.success === true) {
         toast({
-          title: "Email Sent",
-          description: response.message,
+          title: "Email Sent Successfully",
+          description: response.message || `Invoice #${emailInvoice.invoiceNumber} has been sent to ${recipientEmail}`,
         });
         setEmailInvoice(null);
         setRecipientEmail("");
       } else {
-        throw new Error(response.message || "Failed to send email");
+        throw new Error(response?.message || "Failed to send email");
       }
     } catch (error: any) {
       console.error("Error sending email:", error);
