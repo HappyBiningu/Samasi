@@ -7,11 +7,14 @@ import * as schema from "@shared/schema";
 // Configure WebSocket for Replit environment
 neonConfig.webSocketConstructor = ws;
 
-if (!process.env.DATABASE_URL) {
+// Hardcoded database configuration
+const DATABASE_URL = "postgresql://neondb_owner:npg_4QE1vOrmTyjF@ep-muddy-credit-ae6zy7i3-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require";
+
+if (!DATABASE_URL) {
   throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
+    "DATABASE_URL is not configured. Please update the hardcoded value in server/db.ts",
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const pool = new Pool({ connectionString: DATABASE_URL });
 export const db = drizzle({ client: pool, schema });

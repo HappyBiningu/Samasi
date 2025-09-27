@@ -1,7 +1,10 @@
 import { defineConfig } from "drizzle-kit";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL, ensure the database is provisioned");
+// Hardcoded database configuration
+const DATABASE_URL = "postgresql://neondb_owner:npg_4QE1vOrmTyjF@ep-muddy-credit-ae6zy7i3-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require";
+
+if (!DATABASE_URL) {
+  throw new Error("DATABASE_URL is not configured. Please update the hardcoded value in drizzle.config.ts");
 }
 
 export default defineConfig({
@@ -9,6 +12,6 @@ export default defineConfig({
   schema: "./shared/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL,
+    url: DATABASE_URL,
   },
 });
