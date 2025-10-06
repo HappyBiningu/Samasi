@@ -21,6 +21,7 @@ interface InvoiceFormData {
   clientName: string;
   clientRegNumber: string;
   clientVatNumber: string;
+  clientAddress: string;
   lineItems: LineItemType[];
   bankDetails?: BankDetails;
   subtotal: number;
@@ -51,6 +52,7 @@ const InvoiceForm = () => {
     clientName: "",
     clientRegNumber: "",
     clientVatNumber: "",
+    clientAddress: "",
     lineItems: initialLineItems,
     subtotal: 0,
     vat: 0,
@@ -82,6 +84,7 @@ const InvoiceForm = () => {
         clientName: invoiceData.clientName,
         clientRegNumber: invoiceData.clientRegNumber,
         clientVatNumber: invoiceData.clientVatNumber,
+        clientAddress: invoiceData.clientAddress,
         lineItems: invoiceData.lineItems,
         subtotal: invoiceData.subtotal,
         vat: invoiceData.vat,
@@ -91,7 +94,7 @@ const InvoiceForm = () => {
         reminderCount: invoiceData.reminderCount || 0,
         lastReminderSent: invoiceData.lastReminderSent ? invoiceData.lastReminderSent.toISOString() : undefined,
         bankDetails: invoiceData.bankDetails || undefined,
-        invoiceType: invoiceData.invoiceType || "internal",
+        invoiceType: (invoiceData.invoiceType || "internal") as "internal" | "external",
         companyId: invoiceData.companyId || undefined,
       });
     }
@@ -320,6 +323,19 @@ const InvoiceForm = () => {
                       value={formData.clientVatNumber}
                       onChange={handleInputChange}
                       required
+                      data-testid="input-clientVatNumber"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="clientAddress" className="text-sm font-medium text-neutral-500 mb-1">Address</Label>
+                    <Input
+                      type="text"
+                      id="clientAddress"
+                      name="clientAddress"
+                      value={formData.clientAddress}
+                      onChange={handleInputChange}
+                      required
+                      data-testid="input-clientAddress"
                     />
                   </div>
                 </div>

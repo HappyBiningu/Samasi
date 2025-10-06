@@ -51,6 +51,7 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
           <p>{invoice.clientName}</p>
           <p>Registration Number: {invoice.clientRegNumber}</p>
           <p>VAT No: {invoice.clientVatNumber}</p>
+          <p>Address: {invoice.clientAddress}</p>
         </div>
         <div className="text-right">
           <p>

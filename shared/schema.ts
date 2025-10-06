@@ -64,6 +64,7 @@ export const invoices = pgTable("invoices", {
   clientName: text("client_name").notNull(),
   clientRegNumber: text("client_reg_number").notNull(),
   clientVatNumber: text("client_vat_number").notNull(),
+  clientAddress: text("client_address").notNull(),
   lineItems: jsonb("line_items").notNull().$type<LineItem[]>(),
   bankDetails: jsonb("bank_details").$type<BankDetails>(),
   subtotal: integer("subtotal").notNull(),
